@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <unistd.h>
 #include <sched.h>
 
 #define NUM_THREADS 64
@@ -79,14 +80,43 @@ void set_scheduler(void)
 }
 
 
+void set_scheduler2(void)
+{
+    int max_prio, scope, rc, cpuidx;
+    cpu_set_t cpuset;
+
+    printf("INITIAL "); print_scheduler();
+
+    pthread_attr_init(&fifo_sched_attr);
+    pthread_attr_setinheritsched(&fifo_sched_attr, PTHREAD_EXPLICIT_SCHED);
+    pthread_attr_setschedpolicy(&fifo_sched_attr, SCHED_POLICY);
+    CPU_ZERO(&cpuset);
+    cpuidx=(2);
+    CPU_SET(cpuidx, &cpuset);
+    pthread_attr_setaffinity_np(&fifo_sched_attr, sizeof(cpu_set_t), &cpuset);
+
+    max_prio=sched_get_priority_max(SCHED_POLICY);
+    fifo_param.sched_priority=max_prio;    
+
+    if((rc=sched_setscheduler(getpid(), SCHED_POLICY, &fifo_param)) < 0)
+        perror("sched_setscheduler");
+
+    pthread_attr_setschedparam(&fifo_sched_attr, &fifo_param);
+
+    printf("ADJUSTED "); print_scheduler();
+}
+
+
 
 
 void *counterThread(void *threadp)
 {
     int sum=0, i, rc, iterations;
     threadParams_t *threadParams = (threadParams_t *)threadp;
+
     pthread_t mythread;
     double start=0.0, stop=0.0;
+
     struct timeval startTime, stopTime;
 
     gettimeofday(&startTime, 0);
@@ -120,7 +150,9 @@ void *starterThread(void *threadp)
    for(i=0; i < NUM_THREADS; i++)
    {
        threadParams[i].threadIdx=i;
-
+       if(i == 32)
+       set_scheduler2();
+       
        pthread_create(&threads[i],   // pointer to thread descriptor
                       &fifo_sched_attr,     // use FIFO RT max priority attributes
                       counterThread, // thread function entry point
