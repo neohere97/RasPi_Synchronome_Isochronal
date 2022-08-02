@@ -7,7 +7,7 @@ CFLAGS= -O0 -g $(INCLUDE_DIRS) $(CDEFS)
 LIBS= 
 
 HFILES= 
-CFILES= lab1.c
+CFILES= sequencer.c
 
 SRCS= ${HFILES} ${CFILES}
 OBJS= ${CFILES:.c=.o}
@@ -16,7 +16,7 @@ all:	lab1
 
 clean:
 	-rm -f *.o *.d
-	-rm -f lab1
+	-rm -f sequencer
 
 lab1: lab1.o
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $@.o -lpthread
