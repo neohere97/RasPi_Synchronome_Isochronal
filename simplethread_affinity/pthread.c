@@ -53,7 +53,7 @@ void print_scheduler(void)
 }
 
 
-void set_scheduler(void)
+void set_scheduler(int cpu_id)
 {
     int max_prio, scope, rc, cpuidx;
     cpu_set_t cpuset;
@@ -64,7 +64,7 @@ void set_scheduler(void)
     pthread_attr_setinheritsched(&fifo_sched_attr, PTHREAD_EXPLICIT_SCHED);
     pthread_attr_setschedpolicy(&fifo_sched_attr, SCHED_POLICY);
     CPU_ZERO(&cpuset);
-    cpuidx=(3);
+    cpuidx=(cpu_id);
     CPU_SET(cpuidx, &cpuset);
     pthread_attr_setaffinity_np(&fifo_sched_attr, sizeof(cpu_set_t), &cpuset);
 
@@ -78,35 +78,6 @@ void set_scheduler(void)
 
     printf("ADJUSTED "); print_scheduler();
 }
-
-
-void set_scheduler2(void)
-{
-    int max_prio, scope, rc, cpuidx;
-    cpu_set_t cpuset;
-
-    printf("INITIAL "); print_scheduler();
-
-    pthread_attr_init(&fifo_sched_attr);
-    pthread_attr_setinheritsched(&fifo_sched_attr, PTHREAD_EXPLICIT_SCHED);
-    pthread_attr_setschedpolicy(&fifo_sched_attr, SCHED_POLICY);
-    CPU_ZERO(&cpuset);
-    cpuidx=(2);
-    CPU_SET(cpuidx, &cpuset);
-    pthread_attr_setaffinity_np(&fifo_sched_attr, sizeof(cpu_set_t), &cpuset);
-
-    max_prio=sched_get_priority_max(SCHED_POLICY);
-    fifo_param.sched_priority=max_prio;    
-
-    if((rc=sched_setscheduler(getpid(), SCHED_POLICY, &fifo_param)) < 0)
-        perror("sched_setscheduler");
-
-    pthread_attr_setschedparam(&fifo_sched_attr, &fifo_param);
-
-    printf("ADJUSTED "); print_scheduler();
-}
-
-
 
 
 void *counterThread(void *threadp)
@@ -151,8 +122,8 @@ void *starterThread(void *threadp)
    {
        threadParams[i].threadIdx=i;
        if(i == 32)
-       set_scheduler2();
-       
+       set_scheduler(2);
+
        pthread_create(&threads[i],   // pointer to thread descriptor
                       &fifo_sched_attr,     // use FIFO RT max priority attributes
                       counterThread, // thread function entry point
@@ -173,7 +144,7 @@ int main (int argc, char *argv[])
    int i, j;
    cpu_set_t cpuset;
 
-   set_scheduler();
+   set_scheduler(1);
 
    CPU_ZERO(&cpuset);
 
