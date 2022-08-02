@@ -32,7 +32,7 @@ threadParams_t threadParams[NUM_THREADS];
 // }
 
 void *printer_thread(void *threadparams){
-    threadParams_t *threadParams = (threadParams_t)threadparams;
+    threadParams_t *threadParams = (threadParams_t *)threadparams;
 
     printf("Thread Number is %d \n Thread Dump Val is %d \n\n",threadParams->threadIdx,threadParams->dump);
 }
