@@ -3,11 +3,12 @@
 #include <stdio.h>
 #include <sched.h>
 
-#define NUM_THREADS 12
+#define NUM_THREADS 100
 
 typedef struct
 {
     int threadIdx;
+    int dump;
 } threadParams_t;
 
 
@@ -17,17 +18,23 @@ pthread_t threads[NUM_THREADS];
 threadParams_t threadParams[NUM_THREADS];
 
 
-void *counterThread(void *threadp)
-{
-    int sum=0, i;
-    threadParams_t *threadParams = (threadParams_t *)threadp;
+// void *counterThread(void *threadp)
+// {
+//     int sum=0, i;
+//     threadParams_t *threadParams = (threadParams_t *)threadp;
 
-    for(i=1; i < (threadParams->threadIdx)+1; i++)
-        sum=sum+i;
+//     for(i=1; i < (threadParams->threadIdx)+1; i++)
+//         sum=sum+i;
  
-    printf("Thread idx=%d, sum[0...%d]=%d\n", 
-           threadParams->threadIdx,
-           threadParams->threadIdx, sum);
+//     printf("Thread idx=%d, sum[0...%d]=%d\n", 
+//            threadParams->threadIdx,
+//            threadParams->threadIdx, sum);
+// }
+
+void *printer_thread(void *threadparams){
+    threadParams_t *threadParams = (threadParams_t)threadparams;
+
+    printf("Thread Number is %d \n Thread Dump Val is %d \n\n",threadParams->threadIdx,threadParams->dump);
 }
 
 
@@ -39,10 +46,11 @@ int main (int argc, char *argv[])
    for(i=0; i < NUM_THREADS; i++)
    {
        threadParams[i].threadIdx=i;
+       threadParams[i].dump = i%2;
 
        pthread_create(&threads[i],   // pointer to thread descriptor
                       (void *)0,     // use default attributes
-                      counterThread, // thread function entry point
+                      printer_thread, // thread function entry point
                       (void *)&(threadParams[i]) // parameters to pass in
                      );
 
