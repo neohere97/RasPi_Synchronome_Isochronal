@@ -12,6 +12,9 @@
 #define NUM_THREADS 64
 #define NUM_CPUS 8
 
+#define SEQ_SECONDS 0
+#define SEQ_NANOSECONDS 50000000
+
 typedef struct
 {
     int threadIdx;
@@ -43,8 +46,8 @@ void *Sequencer(void *threadp)
     struct timespec sleep_time;
     struct timespec time_error;
 
-    sleep_time.tv_sec = 1;
-    sleep_time.tv_nsec = 0;
+    sleep_time.tv_sec = SEQ_SECONDS;
+    sleep_time.tv_nsec = SEQ_NANOSECONDS;
 
     while (1)
     {
