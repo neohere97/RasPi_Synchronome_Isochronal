@@ -40,11 +40,8 @@ double getTimeMsec(void)
 
 void *Sequencer(void *threadp)
 {
-    struct timespec
-    {
-        time_t tv_sec;
-        long tv_nsec;
-    } sleep_time;
+    struct timespec sleep_time;
+    struct timespec time_error;
 
     sleep_time.tv_sec = 1;
     sleep_time.tv_nsec = 0;
@@ -52,7 +49,7 @@ void *Sequencer(void *threadp)
     while (1)
     {
         printf("This should get printed ever 1 second \n");
-        nanosleep(&sleep_time);
+        nanosleep(&sleep_time, &time_error);
     }
 }
 
