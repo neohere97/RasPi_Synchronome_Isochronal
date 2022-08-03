@@ -51,7 +51,7 @@ void *Sequencer(void *threadp)
 
   while(1){   
       printf("This should get printed ever 1 second \n");
-      nanosleep(&sleep_time);
+      nanosleep(sleep_time);
     }
 
 }
