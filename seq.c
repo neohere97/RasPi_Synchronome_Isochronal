@@ -17,6 +17,7 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
+#include <syslog.h>
 
 #include <linux/videodev2.h>
 
@@ -1021,7 +1022,8 @@ void *Sequencer(void *threadp)
         if (cnt_acq == 60)
         {
             sem_post(&semAcqPicture);
-            printf("This should be 32ms %f\n", getTimeMsec() - acq_time);
+            syslog(LOG_CRIT,"This should be 32ms %f\n", getTimeMsec() - acq_time);
+            // printf("This should be 32ms %f\n", getTimeMsec() - acq_time);
             acq_time = getTimeMsec();
             cnt_acq = 0;
         }
