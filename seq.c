@@ -533,8 +533,8 @@ static int read_frame(void)
 void *take_picture(void *threadp)
 {
     unsigned int count;
-
-    while (count >= 181)
+    count = 0;
+    while (count < 182)
     {
         sem_wait(&semAcqPicture);
         for (;;)
