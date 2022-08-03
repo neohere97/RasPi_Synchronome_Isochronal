@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <sched.h>
+#include <semaphore.h>
 
 #include <getopt.h>
 #include <fcntl.h>
@@ -33,9 +34,12 @@ typedef struct
 
 // POSIX thread declarations and scheduling attributes
 //
+sem_t semAcqPicture;
+
 pthread_t threads[NUM_THREADS];
 pthread_t mainthread;
 pthread_t startthread;
+pthread_t acqthread;
 threadParams_t threadParams[NUM_THREADS];
 
 pthread_attr_t fifo_sched_attr;
@@ -148,65 +152,6 @@ int main(int argc, char *argv[])
     else
         dev_name = "/dev/video0";
 
-    // for (;;)
-    // {
-    //     int idx;
-    //     int c;
-
-    //     c = getopt_long(argc, argv,
-    //                     short_options, long_options, &idx);
-
-    //     if (-1 == c)
-    //         break;
-
-    //     switch (c)
-    //     {
-    //     case 0: /* getopt_long() flag */
-    //         break;
-
-    //     case 'd':
-    //         dev_name = optarg;
-    //         break;
-
-    //     case 'h':
-    //         usage(stdout, argc, argv);
-    //         exit(EXIT_SUCCESS);
-
-    //     case 'm':
-    //         io = IO_METHOD_MMAP;
-    //         break;
-
-    //     case 'r':
-    //         io = IO_METHOD_READ;
-    //         break;
-
-    //     case 'u':
-    //         io = IO_METHOD_USERPTR;
-    //         break;
-
-    //     case 'o':
-    //         out_buf++;
-    //         break;
-
-    //     case 'f':
-    //         force_format++;
-    //         break;
-
-    //     case 'c':
-    //         errno = 0;
-    //         frame_count = strtol(optarg, NULL, 0);
-    //         if (errno)
-    //             errno_exit(optarg);
-    //         break;
-
-    //     default:
-    //         usage(stderr, argc, argv);
-    //         exit(EXIT_FAILURE);
-    //     }
-    // }
-
-    // usage(stderr, argc, argv);
-    // exit(EXIT_FAILURE);
     open_device();
     init_device();
     start_capturing();
@@ -243,7 +188,18 @@ int main(int argc, char *argv[])
                    (void *)0         // parameters to pass in
     );
 
+    set_scheduler(3);
+
+     pthread_create(&acqthread,     // pointer to thread descriptor
+                   &fifo_sched_attr, // use FIFO RT max priority attributes
+                   take_picture,        // thread function entry point
+                   (void *)0         // parameters to pass in
+    );
+
+
+    pthread_join(acqthread, NULL);
     pthread_join(startthread, NULL);
+    
 }
 
 // ------------------------------SIMPLE_CAPTURE_CODE---------------------------------------------
@@ -267,67 +223,64 @@ static int xioctl(int fh, int request, void *arg)
     return r;
 }
 
-char ppm_header[]="P6\n#9999999999 sec 9999999999 msec \n"HRES_STR" "VRES_STR"\n255\n";
-char ppm_dumpname[]="frames/test0000.ppm";
+char ppm_header[] = "P6\n#9999999999 sec 9999999999 msec \n" HRES_STR " " VRES_STR "\n255\n";
+char ppm_dumpname[] = "frames/test0000.ppm";
 
 static void dump_ppm(const void *p, int size, unsigned int tag, struct timespec *time)
 {
     int written, i, total, dumpfd;
-   
+
     snprintf(&ppm_dumpname[11], 9, "%04d", tag);
     strncat(&ppm_dumpname[15], ".ppm", 5);
     dumpfd = open(ppm_dumpname, O_WRONLY | O_NONBLOCK | O_CREAT, 00666);
 
     snprintf(&ppm_header[4], 11, "%010d", (int)time->tv_sec);
     strncat(&ppm_header[14], " sec ", 5);
-    snprintf(&ppm_header[19], 11, "%010d", (int)((time->tv_nsec)/1000000));
-    strncat(&ppm_header[29], " msec \n"HRES_STR" "VRES_STR"\n255\n", 19);
-    written=write(dumpfd, ppm_header, sizeof(ppm_header));
+    snprintf(&ppm_header[19], 11, "%010d", (int)((time->tv_nsec) / 1000000));
+    strncat(&ppm_header[29], " msec \n" HRES_STR " " VRES_STR "\n255\n", 19);
+    written = write(dumpfd, ppm_header, sizeof(ppm_header));
 
-    total=0;
+    total = 0;
 
     do
     {
-        written=write(dumpfd, p, size);
-        total+=written;
-    } while(total < size);
+        written = write(dumpfd, p, size);
+        total += written;
+    } while (total < size);
 
     printf("wrote %d bytes\n", total);
 
     close(dumpfd);
-    
 }
 
-
-char pgm_header[]="P5\n#9999999999 sec 9999999999 msec \n"HRES_STR" "VRES_STR"\n255\n";
-char pgm_dumpname[]="frames/test0000.pgm";
+char pgm_header[] = "P5\n#9999999999 sec 9999999999 msec \n" HRES_STR " " VRES_STR "\n255\n";
+char pgm_dumpname[] = "frames/test0000.pgm";
 
 static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec *time)
 {
     int written, i, total, dumpfd;
-   
+
     snprintf(&pgm_dumpname[11], 9, "%04d", tag);
     strncat(&pgm_dumpname[15], ".pgm", 5);
     dumpfd = open(pgm_dumpname, O_WRONLY | O_NONBLOCK | O_CREAT, 00666);
 
     snprintf(&pgm_header[4], 11, "%010d", (int)time->tv_sec);
     strncat(&pgm_header[14], " sec ", 5);
-    snprintf(&pgm_header[19], 11, "%010d", (int)((time->tv_nsec)/1000000));
-    strncat(&pgm_header[29], " msec \n"HRES_STR" "VRES_STR"\n255\n", 19);
-    written=write(dumpfd, pgm_header, sizeof(pgm_header));
+    snprintf(&pgm_header[19], 11, "%010d", (int)((time->tv_nsec) / 1000000));
+    strncat(&pgm_header[29], " msec \n" HRES_STR " " VRES_STR "\n255\n", 19);
+    written = write(dumpfd, pgm_header, sizeof(pgm_header));
 
-    total=0;
+    total = 0;
 
     do
     {
-        written=write(dumpfd, p, size);
-        total+=written;
-    } while(total < size);
+        written = write(dumpfd, p, size);
+        total += written;
+    } while (total < size);
 
     printf("wrote %d bytes\n", total);
 
     close(dumpfd);
-    
 }
 
 void yuv2rgb_float(float y, float u, float v,
@@ -454,7 +407,7 @@ static void process_image(const void *p, int size)
             bigbuffer[newi + 1] = pptr[i + 2];
         }
 
-        dump_pgm(bigbuffer, (size / 2), framecnt, &frame_time);
+        // dump_pgm(bigbuffer, (size / 2), framecnt, &frame_time);
 #endif
     }
 
@@ -576,41 +529,46 @@ static int read_frame(void)
     return 1;
 }
 
-static void take_picture(void)
+static void *take_picture(void *threadp)
 {
     unsigned int count;
 
-    for (;;)
+    while (count >= 181)
     {
-        fd_set fds;
-        struct timeval tv;
-        int r;
-
-        FD_ZERO(&fds);
-        FD_SET(fd, &fds);
-
-        /* Timeout. */
-        tv.tv_sec = 2;
-        tv.tv_usec = 0;
-
-        r = select(fd + 1, &fds, NULL, NULL, &tv);
-
-        if (-1 == r)
+        sem_wait(&semAcqPicture);
+        for (;;)
         {
-            if (EINTR == errno)
-                continue;
-            errno_exit("select");
-        }
+            fd_set fds;
+            struct timeval tv;
+            int r;
 
-        if (0 == r)
-        {
-            fprintf(stderr, "select timeout\n");
-            exit(EXIT_FAILURE);
-        }
+            FD_ZERO(&fds);
+            FD_SET(fd, &fds);
 
-        if (read_frame())
-            break;
+            /* Timeout. */
+            tv.tv_sec = 2;
+            tv.tv_usec = 0;
+
+            r = select(fd + 1, &fds, NULL, NULL, &tv);
+
+            if (-1 == r)
+            {
+                if (EINTR == errno)
+                    continue;
+                errno_exit("select");
+            }
+
+            if (0 == r)
+            {
+                fprintf(stderr, "select timeout\n");
+                exit(EXIT_FAILURE);
+            }
+
+            if (read_frame())
+                break;
+        }
     }
+    pthread_exit((void *)0);
 }
 
 static void stop_capturing(void)
@@ -1049,7 +1007,6 @@ static const struct option
         {"count", required_argument, NULL, 'c'},
         {0, 0, 0, 0}};
 
-
 void *Sequencer(void *threadp)
 {
     struct timespec sleep_time;
@@ -1069,14 +1026,14 @@ void *Sequencer(void *threadp)
 
         if (cnt_acq == 2)
         {
-            
+            sem_post(&semAcsemAcqPicture);
             printf("This should be 32ms %f\n", getTimeMsec() - acq_time);
             acq_time = getTimeMsec();
             cnt_acq = 0;
         }
 
         if (cnt_sel == 30)
-        {
+        {        
             printf("This should be 500ms %f\n", getTimeMsec() - sel_time);
             sel_time = getTimeMsec();
             cnt_sel = 0;
@@ -1084,7 +1041,6 @@ void *Sequencer(void *threadp)
 
         if (cnt_dump == 60)
         {            
-            take_picture();
             printf("This should be 1000ms %f\n", getTimeMsec() - dump_time);
             dump_time = getTimeMsec();
             cnt_dump = 0;
