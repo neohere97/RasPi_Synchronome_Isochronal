@@ -205,8 +205,8 @@ int main(int argc, char *argv[])
     //     }
     // }
 
-    usage(stderr, argc, argv);
-    exit(EXIT_FAILURE);
+    // usage(stderr, argc, argv);
+    // exit(EXIT_FAILURE);
     open_device();
     init_device();
     start_capturing();
