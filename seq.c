@@ -389,13 +389,15 @@ static void process_image(const void *p, int size)
             for (i = 0, newi = 0; i < size; i = i + 4, newi = newi + 2)
             {
                 // Y1=first byte and Y2=third byte
-                if (TRANSFORM)
+                if (!TRANSFORM)
                 {
                     bigbuffer[newi] = pptr[i];
                     bigbuffer[newi + 1] = pptr[i + 2];
                 }
                 else
                 {
+                    bigbuffer[newi] = 255 - pptr[i];
+                    bigbuffer[newi + 1] = 255 -pptr[i + 2];
                 }
             }
 
