@@ -20,7 +20,7 @@ typedef struct
 struct timespecd {
     time_t tv_sec;
     long tv_nsec;
-}
+} sleep_time;
 
 
 // POSIX thread declarations and scheduling attributes
@@ -46,8 +46,6 @@ double getTimeMsec(void)
 
 void *Sequencer(void *threadp)
 {
-  timespecd sleep_time;
-
   sleep_time.tv_sec = 1;
   sleep_time.tv_nsec = 0;
 
