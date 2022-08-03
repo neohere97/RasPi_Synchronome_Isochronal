@@ -13,7 +13,7 @@
 #define NUM_CPUS 8
 
 #define SEQ_SECONDS 0
-#define SEQ_NANOSECONDS 500000000
+#define SEQ_NANOSECONDS 8333333
 
 typedef struct
 {
@@ -51,7 +51,7 @@ void *Sequencer(void *threadp)
 
     while (1)
     {
-        printf("This should get printed ever 1 second \n");
+        printf("Timestamp -> %ld\n",getTimeMsec());
         nanosleep(&sleep_time, &time_error);
     }
 }
