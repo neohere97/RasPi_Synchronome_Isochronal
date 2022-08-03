@@ -2,6 +2,8 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <assert.h>
 #include <errno.h>
 #include <time.h>
 #include <sys/time.h>
@@ -81,6 +83,7 @@ static int              out_buf;
 static int              force_format=1;
 static int              frame_count = 30;
 
+void *Sequencer(void *threadp);
 
 double getTimeMsec(void)
 {
