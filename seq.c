@@ -1033,19 +1033,19 @@ void *Sequencer(void *threadp)
             cnt_acq = 0;
         }
 
-        if (cnt_sel == 30)
-        {        
-            printf("This should be 500ms %f\n", getTimeMsec() - sel_time);
-            sel_time = getTimeMsec();
-            cnt_sel = 0;
-        }
+        // if (cnt_sel == 30)
+        // {        
+        //     printf("This should be 500ms %f\n", getTimeMsec() - sel_time);
+        //     sel_time = getTimeMsec();
+        //     cnt_sel = 0;
+        // }
 
-        if (cnt_dump == 60)
-        {            
-            printf("This should be 1000ms %f\n", getTimeMsec() - dump_time);
-            dump_time = getTimeMsec();
-            cnt_dump = 0;
-        }
+        // if (cnt_dump == 60)
+        // {            
+        //     printf("This should be 1000ms %f\n", getTimeMsec() - dump_time);
+        //     dump_time = getTimeMsec();
+        //     cnt_dump = 0;
+        // }
 
         nanosleep(&sleep_time, &time_error);
     }
