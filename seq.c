@@ -424,7 +424,7 @@ static void process_image(const void *p, int size)
     else if (fmt.fmt.pix.pixelformat == V4L2_PIX_FMT_YUYV)
     {
 
-#if defined(COLOR_CONVERT)
+#if defined(COLOR_CONVERT_RGB)
         printf("Dump YUYV converted to RGB size %d\n", size);
 
         // Pixels are YU and YV alternating, so YUYV which is 4 bytes
