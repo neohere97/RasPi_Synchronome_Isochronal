@@ -45,11 +45,11 @@ struct sched_param fifo_param;
 #define SCHED_POLICY SCHED_FIFO
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
-#define COLOR_CONVERT
-#define HRES 320
-#define VRES 240
-#define HRES_STR "320"
-#define VRES_STR "240"
+// #define COLOR_CONVERT
+#define HRES 640
+#define VRES 480
+#define HRES_STR "640"
+#define VRES_STR "480"
 
 // Format is used by a number of functions, so made as a file global
 static struct v4l2_format fmt;
@@ -1141,8 +1141,9 @@ void *Sequencer(void *threadp)
         cnt_sel++;
         cnt_dump++;
 
-        if (cnt_acq == 2)
+        if (cnt_acq == 6)
         {
+            take_picture();
             printf("This should be 32ms %f\n", getTimeMsec() - acq_time);
             acq_time = getTimeMsec();
             cnt_acq = 0;
@@ -1156,8 +1157,7 @@ void *Sequencer(void *threadp)
         }
 
         if (cnt_dump == 60)
-        {
-            take_picture();
+        {            
             printf("This should be 1000ms %f\n", getTimeMsec() - dump_time);
             dump_time = getTimeMsec();
             cnt_dump = 0;
