@@ -408,7 +408,7 @@ static void process_image(const void *p, int size)
             bigbuffer[newi + 1] = pptr[i + 2];
         }
 
-        // dump_pgm(bigbuffer, (size / 2), framecnt, &frame_time);
+        dump_pgm(bigbuffer, (size / 2), framecnt, &frame_time);
 #endif
     }
 
