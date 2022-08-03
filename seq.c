@@ -25,6 +25,7 @@
 #define NUM_SKIPS 25
 #define NUM_STABLE_FRAMES 181
 #define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
+#define TRANSFORM 0
 
 #define SEQ_SECONDS 0
 // #define SEQ_NANOSECONDS 8330000
@@ -194,16 +195,14 @@ int main(int argc, char *argv[])
 
     set_scheduler(3);
 
-     pthread_create(&acqthread,     // pointer to thread descriptor
+    pthread_create(&acqthread,       // pointer to thread descriptor
                    &fifo_sched_attr, // use FIFO RT max priority attributes
-                   take_picture,        // thread function entry point
+                   take_picture,     // thread function entry point
                    (void *)0         // parameters to pass in
     );
 
-
     pthread_join(acqthread, NULL);
     pthread_join(startthread, NULL);
-    
 }
 
 // ------------------------------SIMPLE_CAPTURE_CODE---------------------------------------------
@@ -365,48 +364,53 @@ static void process_image(const void *p, int size)
     // record when process was called
     clock_gettime(CLOCK_REALTIME, &frame_time);
 
-    
     framecnt++;
     printf("frame %d: ", framecnt);
 
     // This just dumps the frame to a file now, but you could replace with whatever image
     // processing you wish.
     //
-   if(framecnt > 25){
-    if (fmt.fmt.pix.pixelformat == V4L2_PIX_FMT_GREY)
+    if (framecnt > 25)
     {
-        printf("Dump graymap as-is size %d\n", size);
-        dump_pgm(p, size, framecnt, &frame_time);
-    }
-    else if (fmt.fmt.pix.pixelformat == V4L2_PIX_FMT_YUYV)
-    {
-
-
-        printf("Dump YUYV converted to YY size %d\n", size);
-
-        // Pixels are YU and YV alternating, so YUYV which is 4 bytes
-        // We want Y, so YY which is 2 bytes
-        //
-        for (i = 0, newi = 0; i < size; i = i + 4, newi = newi + 2)
+        if (fmt.fmt.pix.pixelformat == V4L2_PIX_FMT_GREY)
         {
-            // Y1=first byte and Y2=third byte
-            bigbuffer[newi] = pptr[i];
-            bigbuffer[newi + 1] = pptr[i + 2];
+            printf("Dump graymap as-is size %d\n", size);
+            dump_pgm(p, size, framecnt, &frame_time);
         }
+        else if (fmt.fmt.pix.pixelformat == V4L2_PIX_FMT_YUYV)
+        {
 
-        dump_pgm(bigbuffer, (size / 2), framecnt, &frame_time);
+            printf("Dump YUYV converted to YY size %d\n", size);
 
+            // Pixels are YU and YV alternating, so YUYV which is 4 bytes
+            // We want Y, so YY which is 2 bytes
+            //
+
+            for (i = 0, newi = 0; i < size; i = i + 4, newi = newi + 2)
+            {
+                // Y1=first byte and Y2=third byte
+                if (TRANSFORM)
+                {
+                    bigbuffer[newi] = pptr[i];
+                    bigbuffer[newi + 1] = pptr[i + 2];
+                }
+                else
+                {
+                }
+            }
+
+            dump_pgm(bigbuffer, (size / 2), framecnt, &frame_time);
+        }
+        else if (fmt.fmt.pix.pixelformat == V4L2_PIX_FMT_RGB24)
+        {
+            printf("Dump RGB as-is size %d\n", size);
+            dump_ppm(p, size, framecnt, &frame_time);
+        }
+        else
+        {
+            printf("ERROR - unknown dump format\n");
+        }
     }
-    else if (fmt.fmt.pix.pixelformat == V4L2_PIX_FMT_RGB24)
-    {
-        printf("Dump RGB as-is size %d\n", size);
-        dump_ppm(p, size, framecnt, &frame_time);
-    }
-    else
-    {
-        printf("ERROR - unknown dump format\n");
-    }
-   }
 
     fflush(stderr);
     // fprintf(stderr, ".");
@@ -1021,14 +1025,14 @@ void *Sequencer(void *threadp)
         }
 
         // if (cnt_sel == 30)
-        // {        
+        // {
         //     printf("This should be 500ms %f\n", getTimeMsec() - sel_time);
         //     sel_time = getTimeMsec();
         //     cnt_sel = 0;
         // }
 
         // if (cnt_dump == 60)
-        // {            
+        // {
         //     printf("This should be 1000ms %f\n", getTimeMsec() - dump_time);
         //     dump_time = getTimeMsec();
         //     cnt_dump = 0;
