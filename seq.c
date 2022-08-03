@@ -604,7 +604,7 @@ static void take_picture(void)
         exit(EXIT_FAILURE);
     }
 
-   read_frame()
+   read_frame();
    
     
 }
