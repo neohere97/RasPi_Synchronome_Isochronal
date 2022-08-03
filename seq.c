@@ -22,10 +22,13 @@
 
 #define NUM_THREADS 64
 #define NUM_CPUS 8
+#define NUM_SKIPS 25
+#define NUM_STABLE_FRAMES 181
+#define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
 
 #define SEQ_SECONDS 0
 // #define SEQ_NANOSECONDS 8330000
-#define SEQ_NANOSECONDS 16630000
+#define SEQ_NANOSECONDS 16630600
 
 typedef struct
 {
@@ -517,7 +520,7 @@ void *take_picture(void *threadp)
 {
     unsigned int count;
     count = 0;
-    while (count < 1826)
+    while (count < NUM_PICTURES)
     {
         sem_wait(&semAcqPicture);
         count++;
