@@ -604,16 +604,9 @@ static void take_picture(void)
         exit(EXIT_FAILURE);
     }
 
-    if (read_frame())
-    {
-        if (nanosleep(&read_delay, &time_error) != 0)
-            perror("nanosleep");
-        else
-            printf("time_error.tv_sec=%ld, time_error.tv_nsec=%ld\n", time_error.tv_sec, time_error.tv_nsec);
-
-        count--;
-        break;
-    }
+   read_frame()
+   
+    
 }
 
 static void stop_capturing(void)
