@@ -1,176 +1,40 @@
-// Sam Siewert, September 2016
-//
-// Check to ensure all your CPU cores on in an online state.
-//
-// Check /sys/devices/system/cpu or do lscpu.
-//
-// Tegra is normally configured to hot-plug CPU cores, so to make all available,
-// as root do:
-//
-// echo 0 > /sys/devices/system/cpu/cpuquiet/tegra_cpuquiet/enable
-// echo 1 > /sys/devices/system/cpu/cpu1/online
-// echo 1 > /sys/devices/system/cpu/cpu2/online
-// echo 1 > /sys/devices/system/cpu/cpu3/online
-//
-// Check for precision time resolution and support with cat /proc/timer_list
-//
-// Ideally all printf calls should be eliminated as they can interfere with
-// timing.  They should be replaced with an in-memory event logger or at least
-// calls to syslog.
-
-// This is necessary for CPU affinity macros in Linux
 #define _GNU_SOURCE
-
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <sys/time.h>
+#include <sys/types.h>
 #include <unistd.h>
-
-#include <pthread.h>
 #include <sched.h>
-#include <time.h>
-#include <semaphore.h>
 
-#include <sys/sysinfo.h>
-
-#define USEC_PER_MSEC (1000)
-#define NUM_CPU_CORES (1)
-#define FIB_TEST_CYCLES (100)
-#define NUM_THREADS (3)     // service threads + sequencer
-sem_t semF10, semF20;
-
-#define FIB_LIMIT_FOR_32_BIT (47)
-#define FIB_LIMIT (10)
-
-int abortTest = 0;
-double start_time;
-
-unsigned int seqIterations = FIB_LIMIT;
-unsigned int idx = 0, jdx = 1;
-unsigned int fib = 0, fib0 = 0, fib1 = 1;
-
-double getTimeMsec(void);
-
-
-#define FIB_TEST(seqCnt, iterCnt)      \
-   for(idx=0; idx < iterCnt; idx++)    \
-   {                                   \
-      fib0=0; fib1=1; jdx=1;           \
-      fib = fib0 + fib1;               \
-      while(jdx < seqCnt)              \
-      {                                \
-         fib0 = fib1;                  \
-         fib1 = fib;                   \
-         fib = fib0 + fib1;            \
-         jdx++;                        \
-      }                                \
-   }                                   \
-
+#define NUM_THREADS 64
+#define NUM_CPUS 8
 
 typedef struct
 {
     int threadIdx;
-    int MajorPeriods;
 } threadParams_t;
 
 
-/* Iterations, 2nd arg must be tuned for any given target type
-   using timestamps
-   
-   Be careful of WCET overloading CPU during first period of LCM.
-   
- */
-void *fib10(void *threadp)
-{
-   double event_time, run_time=0.0;
-   int limit=0, release=0, cpucore, i;
-   threadParams_t *threadParams = (threadParams_t *)threadp;
-   unsigned int required_test_cycles;
+// POSIX thread declarations and scheduling attributes
+//
+pthread_t threads[NUM_THREADS];
+pthread_t mainthread;
+pthread_t startthread;
+threadParams_t threadParams[NUM_THREADS];
 
-   // Assume FIB_TEST short enough that preemption risk is minimal
-   //
-   FIB_TEST(seqIterations, FIB_TEST_CYCLES); //warm cache
-   event_time=getTimeMsec();
-   FIB_TEST(seqIterations, FIB_TEST_CYCLES);
-   run_time=getTimeMsec() - event_time;
+pthread_attr_t fifo_sched_attr;
+pthread_attr_t orig_sched_attr;
+struct sched_param fifo_param;
 
-   required_test_cycles = (int)(10.0/run_time);
-   printf("F10 runtime calibration %lf msec per %d test cycles, so %u required\n", run_time, FIB_TEST_CYCLES, required_test_cycles);
-
-   while(!abortTest)
-   {
-       sem_wait(&semF10); 
-
-       if(abortTest)
-           break; 
-       else 
-           release++;
-
-       cpucore=sched_getcpu();
-       printf("F10 start %d @ %lf on core %d\n", release, (event_time=getTimeMsec() - start_time), cpucore);
-
-       do
-       {
-           FIB_TEST(seqIterations, FIB_TEST_CYCLES);
-           limit++;
-       }
-       while(limit < required_test_cycles);
-
-       printf("F10 complete %d @ %lf, %d loops\n", release, (event_time=getTimeMsec() - start_time), limit);
-       limit=0;
-   }
-
-   pthread_exit((void *)0);
-}
-
-void *fib20(void *threadp)
-{
-   double event_time, run_time=0.0;
-   int limit=0, release=0, cpucore, i;
-   threadParams_t *threadParams = (threadParams_t *)threadp;
-   int required_test_cycles;
-
-   // Assume FIB_TEST short enough that preemption risk is minimal
-   //
-   FIB_TEST(seqIterations, FIB_TEST_CYCLES); //warm cache
-   event_time=getTimeMsec();
-   FIB_TEST(seqIterations, FIB_TEST_CYCLES);
-   run_time=getTimeMsec() - event_time;
-
-   required_test_cycles = (int)(20.0/run_time);
-   printf("F20 runtime calibration %lf msec per %d test cycles, so %d required\n", run_time, FIB_TEST_CYCLES, required_test_cycles);
-
-   while(!abortTest)
-   {
-        sem_wait(&semF20);
-
-        if(abortTest)
-           break; 
-        else 
-           release++;
-
-        cpucore=sched_getcpu();
-        printf("F20 start %d @ %lf on core %d\n", release, (event_time=getTimeMsec() - start_time), cpucore);
-
-        do
-        {
-            FIB_TEST(seqIterations, FIB_TEST_CYCLES);
-            limit++;
-        }
-        while(limit < required_test_cycles);
-
-        printf("F20 complete %d @ %lf, %d loops\n", release, (event_time=getTimeMsec() - start_time), limit);
-        limit=0;
-   }
-
-   pthread_exit((void *)0);
-}
-
+#define SCHED_POLICY SCHED_FIFO
 
 double getTimeMsec(void)
 {
   struct timespec event_ts = {0, 0};
 
-  clock_gettime(CLOCK_MONOTONIC, &event_ts);
+  clock_gettime(CLOCK_REALTIME, &event_ts);
   return ((event_ts.tv_sec)*1000.0) + ((event_ts.tv_nsec)/1000000.0);
 }
 
@@ -201,185 +65,99 @@ void print_scheduler(void)
 
 void *Sequencer(void *threadp)
 {
-  int i;
-  int MajorPeriodCnt=0;
-  double event_time;
-  threadParams_t *threadParams = (threadParams_t *)threadp;
+  double init_time = getTimeMsec();
+  while(1){
+    if(getTimeMsec() - init_time >= 1000){
+      init_time = getTimeMsec();
+      printf("This should get printed ever 1 second");
+    }
+  }
+}
 
-  printf("Starting Sequencer: [S1, T1=20, C1=10], [S2, T2=50, C2=20], U=0.9, LCM=100\n");
-  start_time=getTimeMsec();
+void set_scheduler(int cpu_id)
+{
+    int max_prio, scope, rc, cpuidx;
+    cpu_set_t cpuset;
 
+    printf("INITIAL "); print_scheduler();
 
-  // Sequencing loop for LCM phasing of S1, S2
-  do
-  {
+    pthread_attr_init(&fifo_sched_attr);
+    pthread_attr_setinheritsched(&fifo_sched_attr, PTHREAD_EXPLICIT_SCHED);
+    pthread_attr_setschedpolicy(&fifo_sched_attr, SCHED_POLICY);
+    CPU_ZERO(&cpuset);
+    cpuidx=(cpu_id);
+    CPU_SET(cpuidx, &cpuset);
+    pthread_attr_setaffinity_np(&fifo_sched_attr, sizeof(cpu_set_t), &cpuset);
 
-      // Basic sequence of releases after CI for 90% load
-      //
-      // S1: T1= 20, C1=10 msec 
-      // S2: T2= 50, C2=20 msec
-      //
-      // This is equivalent to a Cyclic Executive Loop where the major cycle is
-      // 100 milliseconds with a minor cycle of 20 milliseconds, but here we use
-      // pre-emption rather than a fixed schedule.
-      //
-      // Add to see what happens on edge of overload
-      // T3=100, C3=10 msec -- add for 100% utility
-      //
-      // Use of usleep is not ideal, but is sufficient for predictable response.
-      // 
-      // To improve, use a real-time clock (programmable interval time with an
-      // ISR) which in turn raises a signal (software interrupt) to a handler
-      // that performs the release.
-      //
-      // Better yet, code a driver that direction interfaces to a hardware PIT
-      // and sequences between kernel space and user space.
-      //
-      // Final option is to write all real-time code as kernel tasks, more like
-      // an RTOS such as VxWorks.
-      //
+    max_prio=sched_get_priority_max(SCHED_POLICY);
+    fifo_param.sched_priority=max_prio;    
 
-      // Simulate the C.I. for S1 and S2 and timestamp in log
-      printf("\n**** CI t=%lf\n", event_time=getTimeMsec() - start_time);
-      sem_post(&semF10); sem_post(&semF20);
+    if((rc=sched_setscheduler(getpid(), SCHED_POLICY, &fifo_param)) < 0)
+        perror("sched_setscheduler");
 
-      usleep(20*USEC_PER_MSEC); sem_post(&semF10);
-      printf("t=%lf\n", event_time=getTimeMsec() - start_time);
+    pthread_attr_setschedparam(&fifo_sched_attr, &fifo_param);
 
-      usleep(20*USEC_PER_MSEC); sem_post(&semF10);
-      printf("t=%lf\n", event_time=getTimeMsec() - start_time);
-
-      usleep(10*USEC_PER_MSEC); sem_post(&semF20);
-      printf("t=%lf\n", event_time=getTimeMsec() - start_time);
-
-      usleep(10*USEC_PER_MSEC); sem_post(&semF10);
-      printf("t=%lf\n", event_time=getTimeMsec() - start_time);
-
-      usleep(20*USEC_PER_MSEC); sem_post(&semF10);
-      printf("t=%lf\n", event_time=getTimeMsec() - start_time);
-
-      usleep(20*USEC_PER_MSEC);
-
-      MajorPeriodCnt++;
-   } 
-   while (MajorPeriodCnt < threadParams->MajorPeriods);
- 
-   abortTest=1;
-   sem_post(&semF10); sem_post(&semF20);
+    printf("ADJUSTED "); print_scheduler();
 }
 
 
-void main(void)
+
+int main (int argc, char *argv[])
 {
-    int i, rc, scope;
-    cpu_set_t threadcpu;
-    pthread_t threads[NUM_THREADS];
-    threadParams_t threadParams[NUM_THREADS];
-    pthread_attr_t rt_sched_attr[NUM_THREADS];
-    int rt_max_prio, rt_min_prio;
-    struct sched_param rt_param[NUM_THREADS];
-    struct sched_param main_param;
-    pthread_attr_t main_attr;
-    pid_t mainpid;
-    cpu_set_t allcpuset;
+   int rc;
+   int i, j;
+   cpu_set_t cpuset;
 
-    abortTest=0;
+   set_scheduler(2);
 
-   printf("System has %d processors configured and %d available.\n", get_nprocs_conf(), get_nprocs());
+   CPU_ZERO(&cpuset);
 
-   CPU_ZERO(&allcpuset);
+   // get affinity set for main thread
+   mainthread = pthread_self();
 
-   for(i=0; i < NUM_CPU_CORES; i++)
-       CPU_SET(i, &allcpuset);
+   // Check the affinity mask assigned to the thread 
+   rc = pthread_getaffinity_np(mainthread, sizeof(cpu_set_t), &cpuset);
+   if (rc != 0)
+       perror("pthread_getaffinity_np");
+   else
+   {
+       printf("main thread running on CPU=%d, CPUs =", sched_getcpu());
 
-   printf("Using CPUS=%d from total available.\n", CPU_COUNT(&allcpuset));
+       for (j = 0; j < CPU_SETSIZE; j++)
+           if (CPU_ISSET(j, &cpuset))
+               printf(" %d", j);
 
+       printf("\n");
+   }
 
-    // initialize the sequencer semaphores
-    //
-    if (sem_init (&semF10, 0, 0)) { printf ("Failed to initialize semF10 semaphore\n"); exit (-1); }
-    if (sem_init (&semF20, 0, 0)) { printf ("Failed to initialize semF20 semaphore\n"); exit (-1); }
+   pthread_create(&startthread,   // pointer to thread descriptor
+                  &fifo_sched_attr,     // use FIFO RT max priority attributes
+                  Sequencer, // thread function entry point
+                  (void *)0 // parameters to pass in
+                 );
 
-    mainpid=getpid();
-
-    rt_max_prio = sched_get_priority_max(SCHED_FIFO);
-    rt_min_prio = sched_get_priority_min(SCHED_FIFO);
-
-    rc=sched_getparam(mainpid, &main_param);
-    main_param.sched_priority=rt_max_prio;
-    rc=sched_setscheduler(getpid(), SCHED_FIFO, &main_param);
-    if(rc < 0) perror("main_param");
-    print_scheduler();
-
-
-    pthread_attr_getscope(&main_attr, &scope);
-
-    if(scope == PTHREAD_SCOPE_SYSTEM)
-      printf("PTHREAD SCOPE SYSTEM\n");
-    else if (scope == PTHREAD_SCOPE_PROCESS)
-      printf("PTHREAD SCOPE PROCESS\n");
-    else
-      printf("PTHREAD SCOPE UNKNOWN\n");
-
-    printf("rt_max_prio=%d\n", rt_max_prio);
-    printf("rt_min_prio=%d\n", rt_min_prio);
-
-    for(i=0; i < NUM_THREADS; i++)
-    {
-
-      CPU_ZERO(&threadcpu);
-      CPU_SET(3, &threadcpu);
-
-      rc=pthread_attr_init(&rt_sched_attr[i]);
-      rc=pthread_attr_setinheritsched(&rt_sched_attr[i], PTHREAD_EXPLICIT_SCHED);
-      rc=pthread_attr_setschedpolicy(&rt_sched_attr[i], SCHED_FIFO);
-      rc=pthread_attr_setaffinity_np(&rt_sched_attr[i], sizeof(cpu_set_t), &threadcpu);
-
-      rt_param[i].sched_priority=rt_max_prio-i;
-      pthread_attr_setschedparam(&rt_sched_attr[i], &rt_param[i]);
-
-      threadParams[i].threadIdx=i;
-    }
-   
-    printf("Service threads will run on %d CPU cores\n", CPU_COUNT(&threadcpu));
-
-    // Create Service threads which will block awaiting release for:
-    //
-    // serviceF10
-    rc=pthread_create(&threads[1],               // pointer to thread descriptor
-                      &rt_sched_attr[1],         // use specific attributes
-                      //(void *)0,                 // default attributes
-                      fib10,                     // thread function entry point
-                      (void *)&(threadParams[1]) // parameters to pass in
-                     );
-    // serviceF20
-    rc=pthread_create(&threads[2],               // pointer to thread descriptor
-                      &rt_sched_attr[2],         // use specific attributes
-                      //(void *)0,                 // default attributes
-                      fib20,                     // thread function entry point
-                      (void *)&(threadParams[2]) // parameters to pass in
-                     );
-
-
-    // Wait for service threads to calibrate and await relese by sequencer
-    usleep(300000);
- 
-    // Create Sequencer thread, which like a cyclic executive, is highest prio
-    printf("Start sequencer\n");
-    threadParams[0].MajorPeriods=3;
-
-    rc=pthread_create(&threads[0],               // pointer to thread descriptor
-                      &rt_sched_attr[0],         // use specific attributes
-                      //(void *)0,                 // default attributes
-                      Sequencer,                 // thread function entry point
-                      (void *)&(threadParams[0]) // parameters to pass in
-                     );
-
-
-   for(i=0;i<NUM_THREADS;i++)
-       pthread_join(threads[i], NULL);
-
+   pthread_join(startthread, NULL);
 
    printf("\nTEST COMPLETE\n");
+}
 
+
+void print_scheduler(void)
+{
+    int schedType = sched_getscheduler(getpid());
+
+    switch(schedType)
+    {
+        case SCHED_FIFO:
+            printf("Pthread policy is SCHED_FIFO\n");
+            break;
+        case SCHED_OTHER:
+            printf("Pthread policy is SCHED_OTHER\n");
+            break;
+        case SCHED_RR:
+            printf("Pthread policy is SCHED_RR\n");
+            break;
+        default:
+            printf("Pthread policy is UNKNOWN\n");
+    }
 }
