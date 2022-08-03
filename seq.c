@@ -49,10 +49,13 @@ void *Sequencer(void *threadp)
     sleep_time.tv_sec = SEQ_SECONDS;
     sleep_time.tv_nsec = SEQ_NANOSECONDS;
 
+    double temp_time;
+
     while (1)
     {
-        printf("Timestamp -> %lf\n",getTimeMsec());
+        temp_time = getTimeMsec();        
         nanosleep(&sleep_time, &time_error);
+        printf("Timestamp -> %f\n",getTimeMsec() - temp_time);
     }
 }
 
