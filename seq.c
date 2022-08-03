@@ -267,68 +267,67 @@ static int xioctl(int fh, int request, void *arg)
     return r;
 }
 
-char ppm_header[] = "P6\n#9999999999 sec 9999999999 msec \n" HRES_STR " " VRES_STR "\n255\n";
-char ppm_dumpname[] = "frames/test00000000.ppm";
+char ppm_header[]="P6\n#9999999999 sec 9999999999 msec \n"HRES_STR" "VRES_STR"\n255\n";
+char ppm_dumpname[]="frames/test0000.ppm";
 
 static void dump_ppm(const void *p, int size, unsigned int tag, struct timespec *time)
 {
     int written, i, total, dumpfd;
-
-    snprintf(&ppm_dumpname[4], 9, "%08d", tag);
-    strncat(&ppm_dumpname[12], ".ppm", 5);
+   
+    snprintf(&ppm_dumpname[11], 9, "%04d", tag);
+    strncat(&ppm_dumpname[15], ".ppm", 5);
     dumpfd = open(ppm_dumpname, O_WRONLY | O_NONBLOCK | O_CREAT, 00666);
 
     snprintf(&ppm_header[4], 11, "%010d", (int)time->tv_sec);
     strncat(&ppm_header[14], " sec ", 5);
-    snprintf(&ppm_header[19], 11, "%010d", (int)((time->tv_nsec) / 1000000));
-    strncat(&ppm_header[29], " msec \n" HRES_STR " " VRES_STR "\n255\n", 19);
+    snprintf(&ppm_header[19], 11, "%010d", (int)((time->tv_nsec)/1000000));
+    strncat(&ppm_header[29], " msec \n"HRES_STR" "VRES_STR"\n255\n", 19);
+    written=write(dumpfd, ppm_header, sizeof(ppm_header));
 
-    // subtract 1 because sizeof for string includes null terminator
-    written = write(dumpfd, ppm_header, sizeof(ppm_header) - 1);
-
-    total = 0;
+    total=0;
 
     do
     {
-        written = write(dumpfd, p, size);
-        total += written;
-    } while (total < size);
+        written=write(dumpfd, p, size);
+        total+=written;
+    } while(total < size);
 
     printf("wrote %d bytes\n", total);
 
     close(dumpfd);
+    
 }
 
-char pgm_header[] = "P5\n#9999999999 sec 9999999999 msec \n" HRES_STR " " VRES_STR "\n255\n";
-char pgm_dumpname[] = "frames/test00000000.pgm";
+
+char pgm_header[]="P5\n#9999999999 sec 9999999999 msec \n"HRES_STR" "VRES_STR"\n255\n";
+char pgm_dumpname[]="frames/test0000.pgm";
 
 static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec *time)
 {
     int written, i, total, dumpfd;
-
-    snprintf(&pgm_dumpname[4], 9, "%08d", tag);
-    strncat(&pgm_dumpname[12], ".pgm", 5);
+   
+    snprintf(&pgm_dumpname[11], 9, "%04d", tag);
+    strncat(&pgm_dumpname[15], ".pgm", 5);
     dumpfd = open(pgm_dumpname, O_WRONLY | O_NONBLOCK | O_CREAT, 00666);
 
     snprintf(&pgm_header[4], 11, "%010d", (int)time->tv_sec);
     strncat(&pgm_header[14], " sec ", 5);
-    snprintf(&pgm_header[19], 11, "%010d", (int)((time->tv_nsec) / 1000000));
-    strncat(&pgm_header[29], " msec \n" HRES_STR " " VRES_STR "\n255\n", 19);
+    snprintf(&pgm_header[19], 11, "%010d", (int)((time->tv_nsec)/1000000));
+    strncat(&pgm_header[29], " msec \n"HRES_STR" "VRES_STR"\n255\n", 19);
+    written=write(dumpfd, pgm_header, sizeof(pgm_header));
 
-    // subtract 1 because sizeof for string includes null terminator
-    written = write(dumpfd, pgm_header, sizeof(pgm_header) - 1);
-
-    total = 0;
+    total=0;
 
     do
     {
-        written = write(dumpfd, p, size);
-        total += written;
-    } while (total < size);
+        written=write(dumpfd, p, size);
+        total+=written;
+    } while(total < size);
 
     printf("wrote %d bytes\n", total);
 
     close(dumpfd);
+    
 }
 
 void yuv2rgb_float(float y, float u, float v,
