@@ -50,7 +50,7 @@ void *Sequencer(void *threadp)
     sleep_time.tv_sec = SEQ_SECONDS;
     sleep_time.tv_nsec = SEQ_NANOSECONDS;
 
-    double temp_time;
+    double acq_time = getTimeMsec(), sel_time = getTimeMsec(), dump_time= getTimeMsec();
     int cnt_acq = 0, cnt_sel = 0, cnt_dump = 0;
 
     while (1)
@@ -61,17 +61,20 @@ void *Sequencer(void *threadp)
 
         if(cnt_acq == 2){
             cnt_acq = 0;
-            printf("This should be 32ms %lf\n",getTimeMsec());
+            printf("This should be 32ms %f\n",getTimeMsec() - acq_time);
+            acq_time = getTimeMsec();
         }
 
         if(cnt_sel == 30){
             cnt_sel = 0;
-            printf("This should be 500ms %lf\n",getTimeMsec());
+            printf("This should be 500ms %f\n",getTimeMsec() - sel_time);
+            cnt_sel = getTimeMsec();
         }
 
         if(cnt_dump == 60){
            cnt_dump = 0; 
-           printf("This should be 1000ms %lf\n",getTimeMsec());
+           printf("This should be 1000ms %f\n",getTimeMsec() - dump_time);
+           cnt_dump = getTimeMsec();
         }
                
         nanosleep(&sleep_time, &time_error);
