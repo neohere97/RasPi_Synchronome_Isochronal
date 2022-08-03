@@ -51,7 +51,7 @@ void *Sequencer(void *threadp)
 
     while (1)
     {
-        printf("Timestamp -> %ld\n",getTimeMsec());
+        printf("Timestamp -> %f\n",getTimeMsec());
         nanosleep(&sleep_time, &time_error);
     }
 }
