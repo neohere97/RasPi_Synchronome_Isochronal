@@ -1009,7 +1009,7 @@ void *Sequencer(void *threadp)
         cnt_sel++;
         cnt_dump++;
 
-        if (cnt_acq == 2)
+        if (cnt_acq == 60)
         {
             sem_post(&semAcqPicture);
             printf("This should be 32ms %f\n", getTimeMsec() - acq_time);
