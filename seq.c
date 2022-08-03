@@ -87,6 +87,7 @@ static void start_capturing(void);
 static void init_device(void);
 static void open_device(void);
 static void usage(FILE *fp, int argc, char **argv);
+void *take_picture(void *threadp);
 
 double getTimeMsec(void)
 {
@@ -529,7 +530,7 @@ static int read_frame(void)
     return 1;
 }
 
-static void *take_picture(void *threadp)
+void *take_picture(void *threadp)
 {
     unsigned int count;
 
@@ -1026,7 +1027,7 @@ void *Sequencer(void *threadp)
 
         if (cnt_acq == 2)
         {
-            sem_post(&semAcsemAcqPicture);
+            sem_post(&semAcqPicture);
             printf("This should be 32ms %f\n", getTimeMsec() - acq_time);
             acq_time = getTimeMsec();
             cnt_acq = 0;
