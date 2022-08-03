@@ -43,6 +43,45 @@ struct sched_param fifo_param;
 
 #define SCHED_POLICY SCHED_FIFO
 
+
+
+
+
+#define CLEAR(x) memset(&(x), 0, sizeof(x))
+#define COLOR_CONVERT
+#define HRES 320
+#define VRES 240
+#define HRES_STR "320"
+#define VRES_STR "240"
+
+// Format is used by a number of functions, so made as a file global
+static struct v4l2_format fmt;
+
+enum io_method 
+{
+        IO_METHOD_READ,
+        IO_METHOD_MMAP,
+        IO_METHOD_USERPTR,
+};
+
+struct buffer 
+{
+        void   *start;
+        size_t  length;
+};
+
+static char            *dev_name;
+//static enum io_method   io = IO_METHOD_USERPTR;
+//static enum io_method   io = IO_METHOD_READ;
+static enum io_method   io = IO_METHOD_MMAP;
+static int              fd = -1;
+struct buffer          *buffers;
+static unsigned int     n_buffers;
+static int              out_buf;
+static int              force_format=1;
+static int              frame_count = 30;
+
+
 double getTimeMsec(void)
 {
     struct timespec event_ts = {0, 0};
@@ -246,39 +285,7 @@ int main(int argc, char *argv[])
 
 // ------------------------------SIMPLE_CAPTURE_CODE---------------------------------------------
 
-#define CLEAR(x) memset(&(x), 0, sizeof(x))
-#define COLOR_CONVERT
-#define HRES 320
-#define VRES 240
-#define HRES_STR "320"
-#define VRES_STR "240"
 
-// Format is used by a number of functions, so made as a file global
-static struct v4l2_format fmt;
-
-enum io_method 
-{
-        IO_METHOD_READ,
-        IO_METHOD_MMAP,
-        IO_METHOD_USERPTR,
-};
-
-struct buffer 
-{
-        void   *start;
-        size_t  length;
-};
-
-static char            *dev_name;
-//static enum io_method   io = IO_METHOD_USERPTR;
-//static enum io_method   io = IO_METHOD_READ;
-static enum io_method   io = IO_METHOD_MMAP;
-static int              fd = -1;
-struct buffer          *buffers;
-static unsigned int     n_buffers;
-static int              out_buf;
-static int              force_format=1;
-static int              frame_count = 30;
 
 static void errno_exit(const char *s)
 {
