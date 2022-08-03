@@ -82,6 +82,7 @@ void *Sequencer(void *threadp);
 static void start_capturing(void);
 static void init_device(void);
 static void open_device(void);
+static void usage(FILE *fp, int argc, char **argv);
 
 double getTimeMsec(void)
 {
@@ -580,34 +581,37 @@ static void take_picture(void)
 {
     unsigned int count;
 
-    fd_set fds;
-    struct timeval tv;
-    int r;
-
-    FD_ZERO(&fds);
-    FD_SET(fd, &fds);
-
-    /* Timeout. */
-    tv.tv_sec = 2;
-    tv.tv_usec = 0;
-
-    r = select(fd + 1, &fds, NULL, NULL, &tv);
-
-    if (-1 == r)
+    for (;;)
     {
-        if (EINTR == errno)
-            continue;
-        errno_exit("select");
-    }
+        fd_set fds;
+        struct timeval tv;
+        int r;
 
-    if (0 == r)
-    {
-        fprintf(stderr, "select timeout\n");
-        exit(EXIT_FAILURE);
-    }
+        FD_ZERO(&fds);
+        FD_SET(fd, &fds);
 
-    if (read_frame())
-        break;
+        /* Timeout. */
+        tv.tv_sec = 2;
+        tv.tv_usec = 0;
+
+        r = select(fd + 1, &fds, NULL, NULL, &tv);
+
+        if (-1 == r)
+        {
+            if (EINTR == errno)
+                continue;
+            errno_exit("select");
+        }
+
+        if (0 == r)
+        {
+            fprintf(stderr, "select timeout\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (read_frame())
+            break;
+    }
 }
 
 static void stop_capturing(void)
