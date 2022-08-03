@@ -68,13 +68,13 @@ void *Sequencer(void *threadp)
         if(cnt_sel == 30){
             cnt_sel = 0;
             printf("This should be 500ms %f\n",getTimeMsec() - sel_time);
-            cnt_sel = getTimeMsec();
+            sel_time = getTimeMsec();
         }
 
         if(cnt_dump == 60){
            cnt_dump = 0; 
            printf("This should be 1000ms %f\n",getTimeMsec() - dump_time);
-           cnt_dump = getTimeMsec();
+           dump_time = getTimeMsec();
         }
                
         nanosleep(&sleep_time, &time_error);
