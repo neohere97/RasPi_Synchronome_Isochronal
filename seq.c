@@ -84,6 +84,9 @@ static int              force_format=1;
 static int              frame_count = 30;
 
 void *Sequencer(void *threadp);
+static void start_capturing(void);
+static void init_device(void);
+static void open_device(void);
 
 double getTimeMsec(void)
 {
@@ -244,6 +247,7 @@ int main(int argc, char *argv[])
     open_device();
     init_device();
     start_capturing();    
+}
 }
 
 
