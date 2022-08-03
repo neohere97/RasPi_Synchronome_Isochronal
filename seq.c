@@ -362,40 +362,23 @@ static void process_image(const void *p, int size)
     // record when process was called
     clock_gettime(CLOCK_REALTIME, &frame_time);
 
+    
     framecnt++;
     printf("frame %d: ", framecnt);
 
     // This just dumps the frame to a file now, but you could replace with whatever image
     // processing you wish.
     //
-
+   if(framecnt > 25){
     if (fmt.fmt.pix.pixelformat == V4L2_PIX_FMT_GREY)
     {
         printf("Dump graymap as-is size %d\n", size);
         dump_pgm(p, size, framecnt, &frame_time);
     }
-
     else if (fmt.fmt.pix.pixelformat == V4L2_PIX_FMT_YUYV)
     {
 
-#if defined(COLOR_CONVERT_RGB)
-        printf("Dump YUYV converted to RGB size %d\n", size);
 
-        // Pixels are YU and YV alternating, so YUYV which is 4 bytes
-        // We want RGB, so RGBRGB which is 6 bytes
-        //
-        for (i = 0, newi = 0; i < size; i = i + 4, newi = newi + 6)
-        {
-            y_temp = (int)pptr[i];
-            u_temp = (int)pptr[i + 1];
-            y2_temp = (int)pptr[i + 2];
-            v_temp = (int)pptr[i + 3];
-            yuv2rgb(y_temp, u_temp, v_temp, &bigbuffer[newi], &bigbuffer[newi + 1], &bigbuffer[newi + 2]);
-            yuv2rgb(y2_temp, u_temp, v_temp, &bigbuffer[newi + 3], &bigbuffer[newi + 4], &bigbuffer[newi + 5]);
-        }
-
-        dump_ppm(bigbuffer, ((size * 6) / 4), framecnt, &frame_time);
-#else
         printf("Dump YUYV converted to YY size %d\n", size);
 
         // Pixels are YU and YV alternating, so YUYV which is 4 bytes
@@ -409,9 +392,8 @@ static void process_image(const void *p, int size)
         }
 
         dump_pgm(bigbuffer, (size / 2), framecnt, &frame_time);
-#endif
-    }
 
+    }
     else if (fmt.fmt.pix.pixelformat == V4L2_PIX_FMT_RGB24)
     {
         printf("Dump RGB as-is size %d\n", size);
@@ -421,6 +403,7 @@ static void process_image(const void *p, int size)
     {
         printf("ERROR - unknown dump format\n");
     }
+   }
 
     fflush(stderr);
     // fprintf(stderr, ".");
@@ -534,7 +517,7 @@ void *take_picture(void *threadp)
 {
     unsigned int count;
     count = 0;
-    while (count < 182)
+    while (count < 206)
     {
         sem_wait(&semAcqPicture);
         count++;
