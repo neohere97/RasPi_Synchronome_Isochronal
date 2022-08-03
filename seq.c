@@ -578,31 +578,31 @@ static void take_picture(void)
 {
     unsigned int count;
 
-    // fd_set fds;
-    // struct timeval tv;
-    // int r;
+    fd_set fds;
+    struct timeval tv;
+    int r;
 
-    // FD_ZERO(&fds);
-    // FD_SET(fd, &fds);
+    FD_ZERO(&fds);
+    FD_SET(fd, &fds);
 
-    // /* Timeout. */
-    // tv.tv_sec = 2;
-    // tv.tv_usec = 0;
+    /* Timeout. */
+    tv.tv_sec = 2;
+    tv.tv_usec = 0;
 
-    // r = select(fd + 1, &fds, NULL, NULL, &tv);
+    r = select(fd + 1, &fds, NULL, NULL, &tv);
 
-    // if (-1 == r)
-    // {
-    //     if (EINTR == errno)
-    //         continue;
-    //     errno_exit("select");
-    // }
+    if (-1 == r)
+    {
+        if (EINTR == errno)
+            continue;
+        errno_exit("select");
+    }
 
-    // if (0 == r)
-    // {
-    //     fprintf(stderr, "select timeout\n");
-    //     exit(EXIT_FAILURE);
-    // }
+    if (0 == r)
+    {
+        fprintf(stderr, "select timeout\n");
+        exit(EXIT_FAILURE);
+    }
 
     if (read_frame())
     {
