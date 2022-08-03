@@ -12,13 +12,13 @@ CFILES= seq.c
 SRCS= ${HFILES} ${CFILES}
 OBJS= ${CFILES:.c=.o}
 
-all:	lab1
+all:	seq
 
 clean:
 	-rm -f *.o *.d
 	-rm -f seq
 
-lab1: lab1.o
+seq: seq.o
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $@.o -lpthread
 
 depend:
