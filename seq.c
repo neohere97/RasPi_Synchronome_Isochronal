@@ -90,45 +90,7 @@ double getTimeMsec(void)
     return ((event_ts.tv_sec) * 1000.0) + ((event_ts.tv_nsec) / 1000000.0);
 }
 
-void *Sequencer(void *threadp)
-{
-    struct timespec sleep_time;
-    struct timespec time_error;
 
-    sleep_time.tv_sec = SEQ_SECONDS;
-    sleep_time.tv_nsec = SEQ_NANOSECONDS;
-
-    double acq_time = getTimeMsec(), sel_time = getTimeMsec(), dump_time= getTimeMsec();
-    int cnt_acq = 0, cnt_sel = 0, cnt_dump = 0;
-
-    while (1)
-    {
-        cnt_acq++;
-        cnt_sel++;
-        cnt_dump++;
-
-        if(cnt_acq == 2){            
-            printf("This should be 32ms %f\n",getTimeMsec() - acq_time);
-            acq_time = getTimeMsec();
-            cnt_acq = 0;
-        }
-
-        if(cnt_sel == 30){            
-            printf("This should be 500ms %f\n",getTimeMsec() - sel_time);
-            sel_time = getTimeMsec();
-            cnt_sel = 0;
-        }
-
-        if(cnt_dump == 60){          
-           take_picture();  
-           printf("This should be 1000ms %f\n",getTimeMsec() - dump_time);
-           dump_time = getTimeMsec();
-           cnt_dump = 0;
-        }
-               
-        nanosleep(&sleep_time, &time_error);        
-    }
-}
 
 void print_scheduler(void)
 {
@@ -221,60 +183,60 @@ int main(int argc, char *argv[])
 
     for (;;)
     {
-        int idx;
-        int c;
+    //     int idx;
+    //     int c;
 
-        c = getopt_long(argc, argv,
-                    short_options, long_options, &idx);
+    //     c = getopt_long(argc, argv,
+    //                 short_options, long_options, &idx);
 
-        if (-1 == c)
-            break;
+    //     if (-1 == c)
+    //         break;
 
-        switch (c)
-        {
-            case 0: /* getopt_long() flag */
-                break;
+    //     switch (c)
+    //     {
+    //         case 0: /* getopt_long() flag */
+    //             break;
 
-            case 'd':
-                dev_name = optarg;
-                break;
+    //         case 'd':
+    //             dev_name = optarg;
+    //             break;
 
-            case 'h':
-                usage(stdout, argc, argv);
-                exit(EXIT_SUCCESS);
+    //         case 'h':
+    //             usage(stdout, argc, argv);
+    //             exit(EXIT_SUCCESS);
 
-            case 'm':
-                io = IO_METHOD_MMAP;
-                break;
+    //         case 'm':
+    //             io = IO_METHOD_MMAP;
+    //             break;
 
-            case 'r':
-                io = IO_METHOD_READ;
-                break;
+    //         case 'r':
+    //             io = IO_METHOD_READ;
+    //             break;
 
-            case 'u':
-                io = IO_METHOD_USERPTR;
-                break;
+    //         case 'u':
+    //             io = IO_METHOD_USERPTR;
+    //             break;
 
-            case 'o':
-                out_buf++;
-                break;
+    //         case 'o':
+    //             out_buf++;
+    //             break;
 
-            case 'f':
-                force_format++;
-                break;
+    //         case 'f':
+    //             force_format++;
+    //             break;
 
-            case 'c':
-                errno = 0;
-                frame_count = strtol(optarg, NULL, 0);
-                if (errno)
-                        errno_exit(optarg);
-                break;
+    //         case 'c':
+    //             errno = 0;
+    //             frame_count = strtol(optarg, NULL, 0);
+    //             if (errno)
+    //                     errno_exit(optarg);
+    //             break;
 
-            default:
-                usage(stderr, argc, argv);
-                exit(EXIT_FAILURE);
-        }
-    }
+    //         default:
+    //             usage(stderr, argc, argv);
+    //             exit(EXIT_FAILURE);
+    //     }
+    // }
 
     open_device();
     init_device();
@@ -1171,3 +1133,47 @@ long_options[] = {
 //     // fprintf(stderr, "\n");
 //     // return 0;
 // }
+
+
+
+
+
+void *Sequencer(void *threadp)
+{
+    struct timespec sleep_time;
+    struct timespec time_error;
+
+    sleep_time.tv_sec = SEQ_SECONDS;
+    sleep_time.tv_nsec = SEQ_NANOSECONDS;
+
+    double acq_time = getTimeMsec(), sel_time = getTimeMsec(), dump_time= getTimeMsec();
+    int cnt_acq = 0, cnt_sel = 0, cnt_dump = 0;
+
+    while (1)
+    {
+        cnt_acq++;
+        cnt_sel++;
+        cnt_dump++;
+
+        if(cnt_acq == 2){            
+            printf("This should be 32ms %f\n",getTimeMsec() - acq_time);
+            acq_time = getTimeMsec();
+            cnt_acq = 0;
+        }
+
+        if(cnt_sel == 30){            
+            printf("This should be 500ms %f\n",getTimeMsec() - sel_time);
+            sel_time = getTimeMsec();
+            cnt_sel = 0;
+        }
+
+        if(cnt_dump == 60){          
+           take_picture();  
+           printf("This should be 1000ms %f\n",getTimeMsec() - dump_time);
+           dump_time = getTimeMsec();
+           cnt_dump = 0;
+        }
+               
+        nanosleep(&sleep_time, &time_error);        
+    }
+}
