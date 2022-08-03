@@ -517,7 +517,7 @@ void *take_picture(void *threadp)
 {
     unsigned int count;
     count = 0;
-    while (count < 206)
+    while (count < 1826)
     {
         sem_wait(&semAcqPicture);
         count++;
