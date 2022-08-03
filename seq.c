@@ -49,6 +49,27 @@ void *Sequencer(void *threadp)
   }
 }
 
+void print_scheduler(void)
+{
+    int schedType = sched_getscheduler(getpid());
+
+    switch(schedType)
+    {
+        case SCHED_FIFO:
+            printf("Pthread policy is SCHED_FIFO\n");
+            break;
+        case SCHED_OTHER:
+            printf("Pthread policy is SCHED_OTHER\n");
+            break;
+        case SCHED_RR:
+            printf("Pthread policy is SCHED_RR\n");
+            break;
+        default:
+            printf("Pthread policy is UNKNOWN\n");
+    }
+}
+
+
 void set_scheduler(int cpu_id)
 {
     int max_prio, scope, rc, cpuidx;
@@ -117,22 +138,3 @@ int main (int argc, char *argv[])
 }
 
 
-void print_scheduler(void)
-{
-    int schedType = sched_getscheduler(getpid());
-
-    switch(schedType)
-    {
-        case SCHED_FIFO:
-            printf("Pthread policy is SCHED_FIFO\n");
-            break;
-        case SCHED_OTHER:
-            printf("Pthread policy is SCHED_OTHER\n");
-            break;
-        case SCHED_RR:
-            printf("Pthread policy is SCHED_RR\n");
-            break;
-        default:
-            printf("Pthread policy is UNKNOWN\n");
-    }
-}
