@@ -13,7 +13,7 @@
 #define NUM_CPUS 8
 
 #define SEQ_SECONDS 0
-#define SEQ_NANOSECONDS 50000000
+#define SEQ_NANOSECONDS 500000000
 
 typedef struct
 {
