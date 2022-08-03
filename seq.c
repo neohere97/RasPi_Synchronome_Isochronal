@@ -537,6 +537,7 @@ void *take_picture(void *threadp)
     while (count < 182)
     {
         sem_wait(&semAcqPicture);
+        count++;
         for (;;)
         {
             fd_set fds;
