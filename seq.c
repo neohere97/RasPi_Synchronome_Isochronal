@@ -1141,7 +1141,7 @@ void *Sequencer(void *threadp)
         cnt_sel++;
         cnt_dump++;
 
-        if (cnt_acq == 6)
+        if (cnt_acq == 2)
         {
             take_picture();
             printf("This should be 32ms %f\n", getTimeMsec() - acq_time);
