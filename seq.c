@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <time.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -40,13 +41,20 @@ double getTimeMsec(void)
 
 void *Sequencer(void *threadp)
 {
-  double init_time = getTimeMsec();
-  while(1){
-    if(getTimeMsec() - init_time >= 1000){
-      init_time = getTimeMsec();
-      printf("This should get printed ever 1 second");
-    }
+
+  struct timespec {
+      time_t tv_sec;
+      long tv_nsec;
   }
+
+  timespec.tv_sec = 1;
+  timespec.tv_nsec = 0;
+
+  while(1){   
+      printf("This should get printed ever 1 second \n");
+      nanosleep(&timespec);
+    }
+
 }
 
 void print_scheduler(void)
