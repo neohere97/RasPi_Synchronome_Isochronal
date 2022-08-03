@@ -48,8 +48,8 @@ void *Sequencer(void *threadp)
 {
   timespec sleep_time;
 
-  sleeptime.tv_sec = 1;
-  sleeptime.tv_nsec = 0;
+  sleep_time.tv_sec = 1;
+  sleep_time.tv_nsec = 0;
 
   while(1){   
       printf("This should get printed ever 1 second \n");
