@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <sys/stat.h>
 #include <errno.h>
 #include <time.h>
 #include <sys/time.h>
