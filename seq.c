@@ -13,7 +13,8 @@
 #define NUM_CPUS 8
 
 #define SEQ_SECONDS 0
-#define SEQ_NANOSECONDS 8300000
+// #define SEQ_NANOSECONDS 8330000
+#define SEQ_NANOSECONDS 16660000
 
 typedef struct
 {
@@ -50,12 +51,31 @@ void *Sequencer(void *threadp)
     sleep_time.tv_nsec = SEQ_NANOSECONDS;
 
     double temp_time;
+    int cnt_acq = 0, cnt_sel = 0, cnt_dump = 0;
 
     while (1)
     {
-        temp_time = getTimeMsec();        
+        cnt_acq++;
+        cnt_sel++;
+        cnt_dump++;
+
+        if(cnt_acq == 2){
+            cnt_acq = 0;
+            printf("This should be 32ms %lf\n",getTimeMsec());
+        }
+
+        if(cnt_sel == 30){
+            cnt_sel = 0;
+            printf("This should be 500ms %lf\n",getTimeMsec());
+        }
+
+        if(cnt_dump == 60){
+           cnt_dump = 0; 
+           printf("This should be 1000ms %lf\n",getTimeMsec());
+        }
+               
         nanosleep(&sleep_time, &time_error);
-        printf("Timestamp -> %f\n",getTimeMsec() - temp_time);
+        
     }
 }
 
