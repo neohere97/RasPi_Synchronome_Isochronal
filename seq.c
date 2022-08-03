@@ -591,18 +591,18 @@ static void take_picture(void)
 
     r = select(fd + 1, &fds, NULL, NULL, &tv);
 
-    if (-1 == r)
-    {
-        if (EINTR == errno)
-            continue;
-        errno_exit("select");
-    }
+    // if (-1 == r)
+    // {
+    //     if (EINTR == errno)
+    //         continue;
+    //     errno_exit("select");
+    // }
 
-    if (0 == r)
-    {
-        fprintf(stderr, "select timeout\n");
-        exit(EXIT_FAILURE);
-    }
+    // if (0 == r)
+    // {
+    //     fprintf(stderr, "select timeout\n");
+    //     exit(EXIT_FAILURE);
+    // }
 
    read_frame();
    
