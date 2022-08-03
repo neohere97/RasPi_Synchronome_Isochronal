@@ -17,6 +17,11 @@ typedef struct
     int threadIdx;
 } threadParams_t;
 
+struct timespec {
+    time_t tv_sec;
+    long tv_nsec;
+}
+
 
 // POSIX thread declarations and scheduling attributes
 //
@@ -41,18 +46,14 @@ double getTimeMsec(void)
 
 void *Sequencer(void *threadp)
 {
+  timespec sleep_time;
 
-  struct timespec {
-      time_t tv_sec;
-      long tv_nsec;
-  }
-
-  timespec.tv_sec = 1;
-  timespec.tv_nsec = 0;
+  sleeptime.tv_sec = 1;
+  sleeptime.tv_nsec = 0;
 
   while(1){   
       printf("This should get printed ever 1 second \n");
-      nanosleep(&timespec);
+      nanosleep(&sleep_time);
     }
 
 }
