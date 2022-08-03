@@ -14,7 +14,7 @@
 
 #define SEQ_SECONDS 0
 // #define SEQ_NANOSECONDS 8330000
-#define SEQ_NANOSECONDS 16660000
+#define SEQ_NANOSECONDS 16600000
 
 typedef struct
 {
