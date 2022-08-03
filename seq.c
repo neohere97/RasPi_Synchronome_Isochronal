@@ -17,7 +17,7 @@ typedef struct
     int threadIdx;
 } threadParams_t;
 
-struct timespec {
+struct timespecd {
     time_t tv_sec;
     long tv_nsec;
 }
@@ -46,7 +46,7 @@ double getTimeMsec(void)
 
 void *Sequencer(void *threadp)
 {
-  timespec sleep_time;
+  timespecd sleep_time;
 
   sleep_time.tv_sec = 1;
   sleep_time.tv_nsec = 0;
