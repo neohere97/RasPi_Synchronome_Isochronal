@@ -521,7 +521,7 @@ static int read_frame(void)
     }
 
     // printf("R");
-    syslog(LOG_CRIT,"time_ms,", getTimeMsec() - acq_inittime);
+    syslog(LOG_CRIT,"time_ms,%f", getTimeMsec() - acq_inittime);
     return 1;
 }
 
