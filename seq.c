@@ -406,7 +406,7 @@ static void process_image(const void *p, int size)
                 }
             }
             
-            // dump_pgm(bigbuffer, (size / 2), framecnt, &frame_time);
+            dump_pgm(bigbuffer, (size / 2), framecnt, &frame_time);
         }
         else if (fmt.fmt.pix.pixelformat == V4L2_PIX_FMT_RGB24)
         {
