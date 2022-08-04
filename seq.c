@@ -422,6 +422,7 @@ static void process_image(const void *p, int size)
 
 static int read_frame(void)
 {
+    double acq_inittime = getTimeMsec();
     struct v4l2_buffer buf;
     unsigned int i;
 
@@ -520,6 +521,7 @@ static int read_frame(void)
     }
 
     // printf("R");
+    syslog(LOG_CRIT,"time_ms,", getTimeMsec() - acq_inittime);
     return 1;
 }
 
@@ -1010,21 +1012,24 @@ void *Sequencer(void *threadp)
     sleep_time.tv_sec = SEQ_SECONDS;
     sleep_time.tv_nsec = SEQ_NANOSECONDS;
 
-    double acq_time = getTimeMsec(), sel_time = getTimeMsec(), dump_time = getTimeMsec();
-    int cnt_acq = 0, cnt_sel = 0, cnt_dump = 0;
+    double acq_time = getTimeMsec();
+    // , sel_time = getTimeMsec(), dump_time = getTimeMsec();
+    int cnt_acq = 0; 
+    int frame_count = NUM_PICTURES;
+    // cnt_sel = 0, cnt_dump = 0;
 
-    while (1)
+    while (frame_count > 0)
     {
         cnt_acq++;
-        cnt_sel++;
-        cnt_dump++;
+        // cnt_sel++;
+        // cnt_dump++;
 
         if (cnt_acq == 60)
         {
             sem_post(&semAcqPicture);
-            syslog(LOG_CRIT,"This should be 32ms %f\n", getTimeMsec() - acq_time);
+            // syslog(LOG_CRIT,"This should be 32ms %f\n", getTimeMsec() - acq_time);
             // printf("This should be 32ms %f\n", getTimeMsec() - acq_time);
-            acq_time = getTimeMsec();
+            // acq_time = getTimeMsec();
             cnt_acq = 0;
         }
 
@@ -1041,7 +1046,9 @@ void *Sequencer(void *threadp)
         //     dump_time = getTimeMsec();
         //     cnt_dump = 0;
         // }
-
+        frame_count--;
         nanosleep(&sleep_time, &time_error);
     }
+
+    pthread_exit((void *)0);
 }
