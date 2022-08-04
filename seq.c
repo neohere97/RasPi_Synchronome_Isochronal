@@ -1024,7 +1024,7 @@ void *Sequencer(void *threadp)
         // cnt_sel++;
         // cnt_dump++;
 
-        if (cnt_acq == 30)
+        if (cnt_acq == 2)
         {
             sem_post(&semAcqPicture);
             // syslog(LOG_CRIT,"This should be 32ms %f\n", getTimeMsec() - acq_time);
