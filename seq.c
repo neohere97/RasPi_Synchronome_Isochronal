@@ -24,9 +24,9 @@
 #define NUM_THREADS 64
 #define NUM_CPUS 8
 #define NUM_SKIPS 25
-#define NUM_STABLE_FRAMES 181
+#define NUM_STABLE_FRAMES 1801
 #define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
-#define TRANSFORM 1
+#define TRANSFORM 0
 
 #define SEQ_SECONDS 0
 // #define SEQ_NANOSECONDS 8330000
@@ -262,7 +262,7 @@ char pgm_dumpname[] = "frames/test0000.pgm";
 
 static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec *time)
 {
-    
+    double acq_inittime = getTimeMsec();
     int written, i, total, dumpfd;
 
     snprintf(&pgm_dumpname[11], 9, "%04d", tag - NUM_SKIPS);
@@ -286,7 +286,8 @@ static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec 
     printf("wrote %d bytes\n", total);
 
     close(dumpfd);
-    
+    syslog(LOG_CRIT,"time_ms,%f", getTimeMsec() - acq_inittime);
+
 }
 
 void yuv2rgb_float(float y, float u, float v,
@@ -359,7 +360,7 @@ unsigned char bigbuffer[(1280 * 960)];
 
 static void process_image(const void *p, int size)
 {
-    double acq_inittime = getTimeMsec();
+    
     int i, newi, newsize = 0;
     struct timespec frame_time;
     int y_temp, y2_temp, u_temp, v_temp;
@@ -421,7 +422,6 @@ static void process_image(const void *p, int size)
     fflush(stderr);
     // fprintf(stderr, ".");
     fflush(stdout);
-    syslog(LOG_CRIT,"time_ms,%f", getTimeMsec() - acq_inittime);
 }
 
 static int read_frame(void)
