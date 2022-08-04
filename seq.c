@@ -1030,6 +1030,7 @@ void *Sequencer(void *threadp)
             // syslog(LOG_CRIT,"This should be 32ms %f\n", getTimeMsec() - acq_time);
             // printf("This should be 32ms %f\n", getTimeMsec() - acq_time);
             // acq_time = getTimeMsec();
+            frame_count--;
             cnt_acq = 0;
         }
 
@@ -1045,8 +1046,7 @@ void *Sequencer(void *threadp)
         //     printf("This should be 1000ms %f\n", getTimeMsec() - dump_time);
         //     dump_time = getTimeMsec();
         //     cnt_dump = 0;
-        // }
-        frame_count--;
+        // }        
         nanosleep(&sleep_time, &time_error);
     }
 
