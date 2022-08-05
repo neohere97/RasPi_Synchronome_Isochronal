@@ -36,7 +36,7 @@
 
 struct metaframe
 {
-    unsigned char frame_data[(800 * 600)];
+    unsigned char frame_data[(1280 * 960)];
     double time_of_acq;
     unsigned int frame_num;
     struct timespec *frametime;
@@ -430,15 +430,15 @@ static void process_image(const void *p, int size)
             outbuffer[out_buf_current].frametime = &frame_time;
             outbuffer[out_buf_current].frame_num = framecnt;
 
-            // if (out_buf_pending == 99)
-            //     out_buf_pending = out_buf_current;
+            if (out_buf_pending == 99)
+                out_buf_pending = out_buf_current;
 
             // if (out_buf_current < 9)
             //     out_buf_current++;
             // else
             //     out_buf_current = 0;
 
-                dump_pgm(outbuffer[out_buf_pending].frame_data,outbuffer[out_buf_pending].size,outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
+            dump_pgm(outbuffer[out_buf_pending].frame_data,outbuffer[out_buf_pending].size,outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
 
             // dump_pgm(bigbuffer, (size / 2), framecnt, &frame_time);
         }
