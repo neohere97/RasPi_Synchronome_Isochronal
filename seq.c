@@ -416,7 +416,7 @@ static void process_image(const void *p, int size)
             // Pixels are YU and YV alternating, so YUYV which is 4 bytes
             // We want Y, so YY which is 2 bytes
             //
-
+            printf("outbuf_current is -> %d \n\n", out_buf_current);
             for (i = 0, newi = 0; i < size; i = i + 4, newi = newi + 2)
             {
                 // Y1=first byte and Y2=third byte
@@ -445,6 +445,7 @@ static void process_image(const void *p, int size)
             else
                 out_buf_current = 0;
 
+            
             // dump_pgm(outbuffer[out_buf_pending].frame_data,outbuffer[out_buf_pending].size,outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
 
             // dump_pgm(bigbuffer, (size / 2), framecnt, &frame_time);
@@ -1084,13 +1085,13 @@ void *Sequencer(void *threadp)
         //     cnt_sel = 0;
         // }
 
-        if (cnt_dump == DUMP_PERIOD)
-        {
-            sem_post(&semDumpPicture);
-                printf("This should be 2000ms %f\n", getTimeMsec() - dump_time);
-            dump_time = getTimeMsec();
-            cnt_dump = 0;
-        }
+        // if (cnt_dump == DUMP_PERIOD)
+        // {
+        //     sem_post(&semDumpPicture);
+        //         printf("This should be 2000ms %f\n", getTimeMsec() - dump_time);
+        //     dump_time = getTimeMsec();
+        //     cnt_dump = 0;
+        // }
         nanosleep(&sleep_time, &time_error);
     }
 
