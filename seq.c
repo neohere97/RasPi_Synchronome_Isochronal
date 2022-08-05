@@ -1097,7 +1097,7 @@ void *Sequencer(void *threadp)
 unsigned int dump_count = 0;
 void *dump_thread(void *threadparams)
 {
-    while (dump_count <= NUM_PICTURES)
+    while (dump_count != NUM_PICTURES)
     {
         sem_wait(&semDumpPicture);
         while (out_buf_pending != out_buf_current && out_buf_pending != 99)
