@@ -43,10 +43,10 @@ struct metaframe
     unsigned int size;
 }
 
-struct metaframe outbuffer[10];
+struct metaframe outbuffer [10];
 unsigned int out_buf_pending;
 unsigned int out_buf_current;
-unsigned char abort;
+unsigned char abortTest;
 
 typedef struct
 {
@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
 
     CPU_ZERO(&cpuset);
 
-    abort = 0;
+    abortTest = 0;
     out_buf_pending = 99;
     out_buf_current = 0;
 
@@ -1092,7 +1092,7 @@ void *Sequencer(void *threadp)
 
 // void *dump_thread(void *threadparams)
 // {
-//     while (!abort)
+//     while (!abortTest)
 //     {
 //         sem_wait(&semDumpPicture);
 //         if (out_buf_pending >= 0 && out_buf_pending < out_buf_current)
