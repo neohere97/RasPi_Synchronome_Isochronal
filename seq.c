@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <sched.h>
 #include <semaphore.h>
+#include <stdio.h>
 
 #include <getopt.h>
 #include <fcntl.h>
@@ -208,6 +209,8 @@ int main(int argc, char *argv[])
 
         printf("\n");
     }
+
+    
 
     pthread_create(&startthread,     // pointer to thread descriptor
                    &fifo_sched_attr, // use FIFO RT max priority attributes
@@ -1058,6 +1061,9 @@ void *Sequencer(void *threadp)
     double acq_time = getTimeMsec(), sel_time = getTimeMsec(), dump_time = getTimeMsec();
     int cnt_acq = 0;
     int frame_count = NUM_PICTURES, cnt_sel = 0, cnt_dump = 0;
+
+    printf("\n\n Waiting for Trigger, Press any Key \n\n");
+    getchar();
 
     while (!abortTest)
     {
