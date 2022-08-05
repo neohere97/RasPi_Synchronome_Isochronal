@@ -418,8 +418,7 @@ static void process_image(const void *p, int size)
             // Pixels are YU and YV alternating, so YUYV which is 4 bytes
             // We want Y, so YY which is 2 bytes
             //
-            printf("outbuf_current is -> %d \n\n", out_buf_current);
-            for (i = 0, newi = 0; i < size; i = i + 4, newi = newi + 2)
+           for (i = 0, newi = 0; i < size; i = i + 4, newi = newi + 2)
             {
                 // Y1=first byte and Y2=third byte
                 if (!TRANSFORM)
@@ -1070,7 +1069,7 @@ void *Sequencer(void *threadp)
         {
             sem_post(&semAcqPicture);
             // syslog(LOG_CRIT,"This should be 32ms %f\n", getTimeMsec() - acq_time);
-            printf("This should be 32ms %f\n", getTimeMsec() - acq_time);
+            // printf("This should be 32ms %f\n", getTimeMsec() - acq_time);
             acq_time = getTimeMsec();
             frame_count--;
             cnt_acq = 0;
@@ -1086,7 +1085,7 @@ void *Sequencer(void *threadp)
         if (cnt_dump == DUMP_PERIOD)
         {
             sem_post(&semDumpPicture);
-            printf("This should be 2000ms %f\n", getTimeMsec() - dump_time);
+            // printf("This should be 2000ms %f\n", getTimeMsec() - dump_time);
             dump_time = getTimeMsec();
             cnt_dump = 0;
         }
@@ -1104,7 +1103,6 @@ void *dump_thread(void *threadparams)
         while (out_buf_pending != out_buf_current && out_buf_pending != 99)
         {
             dump_pgm(outbuffer[out_buf_pending].frame_data, outbuffer[out_buf_pending].size, outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
-            printf("outbuf_pending is -> %d \n\n", out_buf_pending);
             if (out_buf_pending == 9)
                 out_buf_pending = 0;
             else
@@ -1112,10 +1110,6 @@ void *dump_thread(void *threadparams)
 
             dump_count++;
         }
-        // else
-        // {
-        //     printf("ERROR Line 1101 \n\r");
-        // }
     }
     pthread_exit((void *)0);
 }
