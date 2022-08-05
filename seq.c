@@ -109,6 +109,7 @@ static void init_device(void);
 static void open_device(void);
 static void usage(FILE *fp, int argc, char **argv);
 void *take_picture(void *threadp);
+void *dump_thread(void *threadparams);
 
 double getTimeMsec(void)
 {
@@ -1085,7 +1086,7 @@ void *Sequencer(void *threadp)
 
         if (cnt_dump == DUMP_PERIOD)
         {
-            sem_post(&semDumpPicture)
+            sem_post(&semDumpPicture);
                 printf("This should be 2000ms %f\n", getTimeMsec() - dump_time);
             dump_time = getTimeMsec();
             cnt_dump = 0;
