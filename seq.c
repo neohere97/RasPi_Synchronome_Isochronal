@@ -26,6 +26,7 @@
 #define NUM_SKIPS 25
 #define NUM_STABLE_FRAMES 1801
 #define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
+#define ACQ_PERIOD 60 
 #define TRANSFORM 0
 
 #define SEQ_SECONDS 0
@@ -1028,7 +1029,7 @@ void *Sequencer(void *threadp)
         // cnt_sel++;
         // cnt_dump++;
 
-        if (cnt_acq == 2)
+        if (cnt_acq == ACQ_PERIOD)
         {
             sem_post(&semAcqPicture);
             // syslog(LOG_CRIT,"This should be 32ms %f\n", getTimeMsec() - acq_time);

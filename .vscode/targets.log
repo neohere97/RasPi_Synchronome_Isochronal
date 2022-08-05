@@ -8,12 +8,10 @@ make: *** No rule to make target 'seq.o', needed by 'seq'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Wed Aug 03 18:41:05 2022
+# Make data base, printed on Thu Aug 04 22:26:18 2022
 
 # Variables
 
-# environment
-FPS_BROWSER_APP_PROFILE_STRING = Internet Explorer
 # environment
 SYSTEMDRIVE = C:
 # environment
@@ -25,7 +23,7 @@ USERPROFILE = C:\Users\shala
 # environment
 LOCALAPPDATA = C:\Users\shala\AppData\Local
 # environment
-VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-7e0e54d7-2998-4771-a416-c42824a67dd3-sock
+VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-7f06f51e-92cc-466b-9df2-001cd661cb8f-sock
 # makefile (from 'Makefile', line 10)
 CFILES = seq.c
 # environment
@@ -45,9 +43,7 @@ MAKE_COMMAND := C:/ProgramData/chocolatey/lib/make/tools/install/bin/make.exe
 # automatic
 @D = $(patsubst %/,%,$(patsubst %\,%,$(dir $@)))
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_8804_CGLPBLVDDVFWXSGU
-# environment
-FPS_BROWSER_USER_PROFILE_STRING = Default
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_8124_IQGJBEEWRUNMEOPC
 # environment
 VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 # default
@@ -105,7 +101,7 @@ MAKEFILE_LIST := Makefile
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_PID = 8804
+VSCODE_PID = 8124
 # automatic
 ?D = $(patsubst %/,%,$(patsubst %\,%,$(dir $?)))
 # makefile (from 'Makefile', line 9)
@@ -231,8 +227,7 @@ ALLUSERSPROFILE = C:\ProgramData
 # environment
 SESSIONNAME = Console
 # default
-.FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell nocomment grouped-target extra-prereqs archiv 
-es jobserver output-sync load
+.FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell nocomment grouped-target extra-prereqs archives jobserver output-sync load
 # environment
 PROCESSOR_REVISION = 0802
 # makefile (from 'Makefile', line 3)
@@ -242,7 +237,7 @@ PROCESSOR_IDENTIFIER = AMD64 Family 23 Model 8 Stepping 2, AuthenticAMD
 # environment
 JRE_HOME = C:\Program Files\Eclipse Adoptium\jdk-8.0.322.6-hotspot\jre\bin\javaw.exe
 # variable set hash-table stats:
-# Load=114/1024=11%, Rehash=0, Collisions=20/141=14%
+# Load=112/1024=11%, Rehash=0, Collisions=19/139=14%
 
 # Pattern-specific Variable Values
 
@@ -250,9 +245,9 @@ JRE_HOME = C:\Program Files\Eclipse Adoptium\jdk-8.0.322.6-hotspot\jre\bin\javaw
 
 # Directories
 
-# . (key c:/Users/shala/OneDrive/Boulder S2/RTES/Final Project/Synchronome_summer, mtime 1659573664): 10 files, no impossibilities.
+# . (key c:/Users/shala/OneDrive/Boulder S2/RTES/Final Project/Synchronome_summer, mtime 1659590486): 8 files, no impossibilities.
 
-# 10 files, no impossibilities in 1 directories.
+# 8 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -320,12 +315,13 @@ seq.o:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 18 / storage = 133 B / avg = 7 B
-# current buf: size = 8174 B / used = 133 B / count = 18 / avg = 7 B
+# strcache buffers: 1 (0) / strings = 16 / storage 
+ = 101 B / avg = 6 B
+# current buf: size = 8174 B / used = 101 B / count = 16 / avg = 6 B
 
-# strcache performance: lookups = 29 / hit rate = 37%
+# strcache performance: lookups = 27 / hit rate = 40%
 # hash-table stats:
-# Load=18/8192=0%, Rehash=0, Collisions=0/29=0%
-# Finished Make data base on Wed Aug 03 18:41:05 2022
+# Load=16/8192=0%, Rehash=0, Collisions=0/27=0%
+# Finished Make data base on Thu Aug 04 22:26:18 2022
 
  
