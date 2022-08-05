@@ -445,8 +445,6 @@ static void process_image(const void *p, int size)
             else
                 out_buf_current = 0;
 
-            if(out_buf_current == 0)
-            dump_pgm(outbuffer[out_buf_pending].frame_data,outbuffer[out_buf_pending].size,outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
 
             // dump_pgm(bigbuffer, (size / 2), framecnt, &frame_time);
         }
@@ -1105,8 +1103,8 @@ void *dump_thread(void *threadparams)
         sem_wait(&semDumpPicture);
         if (out_buf_pending >= 0 && out_buf_pending < out_buf_current)
         {
-            dump_pgm(outbuffer[out_buf_pending].frame_data,outbuffer[out_buf_pending].size,outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
-            
+            // dump_pgm(outbuffer[out_buf_pending].frame_data,outbuffer[out_buf_pending].size,outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
+            printf("outbuf_pending is -> %d \n\n", out_buf_pending);
             if(out_buf_pending == 0)
                 out_buf_pending = 99;
             else
