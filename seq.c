@@ -1109,6 +1109,9 @@ void *dump_thread(void *threadparams)
                 out_buf_pending++;
 
             dump_count++;
+
+            if(dump_count == 206)
+            out_buf_pending = 99;
         }
     }
     printf("Exiting Dumper \n\n");
