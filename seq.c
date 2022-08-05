@@ -41,7 +41,7 @@ struct metaframe
     unsigned int frame_num;
     struct timespec *frametime;
     unsigned int size;
-}
+};
 
 struct metaframe outbuffer [10];
 unsigned int out_buf_pending;
