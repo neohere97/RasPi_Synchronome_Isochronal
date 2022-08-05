@@ -231,8 +231,8 @@ int main(int argc, char *argv[])
 
     
     pthread_join(acqthread, NULL);
-    pthread_join(dumpthread, NULL);
-    abortTest = 1;
+    pthread_join(dumpthread, NULL);  
+    abortTest = 1;  
     pthread_join(startthread, NULL);
 
 }
@@ -613,6 +613,7 @@ void *take_picture(void *threadp)
                 break;
         }
     }
+    abortTest = 1;
     pthread_exit((void *)0);
 }
 
@@ -1099,10 +1100,10 @@ void *Sequencer(void *threadp)
 
     pthread_exit((void *)0);
 }
-
+unsigned int dump_count = 0;
 void *dump_thread(void *threadparams)
 {
-    while (!abortTest)
+    while (dump_count <= NUM_PICTURES)
     {
         sem_wait(&semDumpPicture);
         while (out_buf_pending != out_buf_current && out_buf_pending != 99)
@@ -1114,6 +1115,7 @@ void *dump_thread(void *threadparams)
             else 
                 out_buf_pending++;
 
+            dump_count++;
         }
         // else
         // {
