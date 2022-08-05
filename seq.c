@@ -60,7 +60,7 @@ sem_t semAcqPicture, semDumpPicture;
 pthread_t threads[NUM_THREADS];
 pthread_t mainthread;
 pthread_t startthread;
-pthread_t acqthread;
+pthread_t acqthread, dumpthread;
 threadParams_t threadParams[NUM_THREADS];
 
 pthread_attr_t fifo_sched_attr;
@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
     int i, j;
     cpu_set_t cpuset;
 
-    set_scheduler(2);
+    set_scheduler(1);
 
     CPU_ZERO(&cpuset);
 
@@ -214,11 +214,17 @@ int main(int argc, char *argv[])
                    (void *)0         // parameters to pass in
     );
 
-    set_scheduler(3);
+    set_scheduler(2);
 
     pthread_create(&acqthread,       // pointer to thread descriptor
                    &fifo_sched_attr, // use FIFO RT max priority attributes
                    take_picture,     // thread function entry point
+                   (void *)0         // parameters to pass in
+    );
+
+    pthread_create(&dumpthread,       // pointer to thread descriptor
+                   &fifo_sched_attr, // use FIFO RT max priority attributes
+                   dump_thread,     // thread function entry point
                    (void *)0         // parameters to pass in
     );
 
@@ -433,10 +439,10 @@ static void process_image(const void *p, int size)
             if (out_buf_pending == 99)
                 out_buf_pending = out_buf_current;
 
-            // if (out_buf_current < 9)
-            //     out_buf_current++;
-            // else
-            //     out_buf_current = 0;
+            if (out_buf_current < 9)
+                out_buf_current++;
+            else
+                out_buf_current = 0;
 
             dump_pgm(outbuffer[out_buf_pending].frame_data,outbuffer[out_buf_pending].size,outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
 
@@ -1077,37 +1083,37 @@ void *Sequencer(void *threadp)
         //     cnt_sel = 0;
         // }
 
-        // if (cnt_dump == DUMP_PERIOD)
-        // {
-        //     sem_post(&semDumpPicture)
-        //         printf("This should be 2000ms %f\n", getTimeMsec() - dump_time);
-        //     dump_time = getTimeMsec();
-        //     cnt_dump = 0;
-        // }
+        if (cnt_dump == DUMP_PERIOD)
+        {
+            sem_post(&semDumpPicture)
+                printf("This should be 2000ms %f\n", getTimeMsec() - dump_time);
+            dump_time = getTimeMsec();
+            cnt_dump = 0;
+        }
         nanosleep(&sleep_time, &time_error);
     }
 
     pthread_exit((void *)0);
 }
 
-// void *dump_thread(void *threadparams)
-// {
-//     while (!abortTest)
-//     {
-//         sem_wait(&semDumpPicture);
-//         if (out_buf_pending >= 0 && out_buf_pending < out_buf_current)
-//         {
-//             dump_pgm(outbuffer[out_buf_pending].frame_data,outbuffer[out_buf_pending].size,outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
+void *dump_thread(void *threadparams)
+{
+    while (!abortTest)
+    {
+        sem_wait(&semDumpPicture);
+        if (out_buf_pending >= 0 && out_buf_pending < out_buf_current)
+        {
+            dump_pgm(outbuffer[out_buf_pending].frame_data,outbuffer[out_buf_pending].size,outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
             
-//             if(out_buf_pending == 0)
-//                 out_buf_pending = 99;
-//             else
-//                 out_buf_pending--;
+            if(out_buf_pending == 0)
+                out_buf_pending = 99;
+            else
+                out_buf_pending--;
 
-//         }
-//         else
-//         {
-//             printf("ERROR Line 1101 \n\r");
-//         }
-//     }
-// }
+        }
+        else
+        {
+            printf("ERROR Line 1101 \n\r");
+        }
+    }
+}
