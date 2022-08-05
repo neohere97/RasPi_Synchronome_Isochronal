@@ -140,7 +140,7 @@ void print_scheduler(void)
     }
 }
 
-void set_scheduler(int cpu_id)
+void set_scheduler(int cpu_id, int prio_offset)
 {
     int max_prio, scope, rc, cpuidx;
     cpu_set_t cpuset;
@@ -157,7 +157,7 @@ void set_scheduler(int cpu_id)
     pthread_attr_setaffinity_np(&fifo_sched_attr, sizeof(cpu_set_t), &cpuset);
 
     max_prio = sched_get_priority_max(SCHED_POLICY);
-    fifo_param.sched_priority = max_prio;
+    fifo_param.sched_priority = max_prio - prio_offset;
 
     if ((rc = sched_setscheduler(getpid(), SCHED_POLICY, &fifo_param)) < 0)
         perror("sched_setscheduler");
@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
     int i, j;
     cpu_set_t cpuset;
 
-    set_scheduler(1);
+    set_scheduler(1,0);
 
     CPU_ZERO(&cpuset);
 
@@ -218,14 +218,14 @@ int main(int argc, char *argv[])
                    (void *)0         // parameters to pass in
     );
 
-    set_scheduler(2);
+    set_scheduler(2,0);
 
     pthread_create(&acqthread,       // pointer to thread descriptor
                    &fifo_sched_attr, // use FIFO RT max priority attributes
                    take_picture,     // thread function entry point
                    (void *)0         // parameters to pass in
     );
-
+    set_scheduler(1,1);
     pthread_create(&dumpthread,      // pointer to thread descriptor
                    &fifo_sched_attr, // use FIFO RT max priority attributes
                    dump_thread,      // thread function entry point
