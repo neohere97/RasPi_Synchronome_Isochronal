@@ -1099,6 +1099,7 @@ void *dump_thread(void *threadparams)
 {
     while (dump_count != NUM_PICTURES)
     {
+        printf("Dump count %d \n\r", dump_count);
         sem_wait(&semDumpPicture);
         while (out_buf_pending != out_buf_current && out_buf_pending != 99)
         {
@@ -1108,10 +1109,7 @@ void *dump_thread(void *threadparams)
             else
                 out_buf_pending++;
 
-            dump_count++;
-
-            if(dump_count == 206)
-            out_buf_pending = 99;
+            dump_count++;            
         }
     }
     printf("Exiting Dumper \n\n");
