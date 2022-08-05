@@ -26,12 +26,27 @@
 #define NUM_SKIPS 25
 #define NUM_STABLE_FRAMES 181
 #define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
-#define ACQ_PERIOD 60 
+#define ACQ_PERIOD 60
+#define DUMP_PERIOD 157
 #define TRANSFORM 0
 
 #define SEQ_SECONDS 0
 // #define SEQ_NANOSECONDS 8330000
 #define SEQ_NANOSECONDS 16634600
+
+struct metaframe
+{
+    unsigned char frame_data[(800 * 600)];
+    double time_of_acq;
+    unsigned int frame_num;
+    struct timespec *frametime;
+    unsigned int size;
+}
+
+struct metaframe outbuffer[10];
+unsigned int out_buf_pending;
+unsigned int out_buf_current;
+unsigned char abort;
 
 typedef struct
 {
@@ -40,7 +55,7 @@ typedef struct
 
 // POSIX thread declarations and scheduling attributes
 //
-sem_t semAcqPicture;
+sem_t semAcqPicture, semDumpPicture;
 
 pthread_t threads[NUM_THREADS];
 pthread_t mainthread;
@@ -171,6 +186,10 @@ int main(int argc, char *argv[])
 
     CPU_ZERO(&cpuset);
 
+    abort = 0;
+    out_buf_pending = 99;
+    out_buf_current = 0;
+
     // get affinity set for main thread
     mainthread = pthread_self();
 
@@ -287,8 +306,7 @@ static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec 
     printf("wrote %d bytes\n", total);
 
     close(dumpfd);
-    syslog(LOG_CRIT,"time_ms,%f", getTimeMsec() - acq_inittime);
-
+    syslog(LOG_CRIT, "time_ms,%f", getTimeMsec() - acq_inittime);
 }
 
 void yuv2rgb_float(float y, float u, float v,
@@ -361,7 +379,7 @@ unsigned char bigbuffer[(1280 * 960)];
 
 static void process_image(const void *p, int size)
 {
-    
+
     int i, newi, newsize = 0;
     struct timespec frame_time;
     int y_temp, y2_temp, u_temp, v_temp;
@@ -397,17 +415,32 @@ static void process_image(const void *p, int size)
                 // Y1=first byte and Y2=third byte
                 if (!TRANSFORM)
                 {
-                    bigbuffer[newi] = pptr[i];
-                    bigbuffer[newi + 1] = pptr[i + 2];
+                    outbuffer[out_buf_current].frame_data[newi] = pptr[i];
+                    outbuffer[out_buf_current].frame_data[newi + 1] = pptr[i + 2];
+                    // bigbuffer[newi] = pptr[i];
+                    // bigbuffer[newi + 1] = pptr[i + 2];
                 }
                 else
                 {
                     bigbuffer[newi] = 255 - pptr[i];
-                    bigbuffer[newi + 1] = 255 -pptr[i + 2];
+                    bigbuffer[newi + 1] = 255 - pptr[i + 2];
                 }
             }
-            
-            dump_pgm(bigbuffer, (size / 2), framecnt, &frame_time);
+            outbuffer[out_buf_current].size = (size / 2);
+            outbuffer[out_buf_current].frametime = &frame_time;
+            outbuffer[out_buf_current].frame_num = framecnt;
+
+            // if (out_buf_pending == 99)
+            //     out_buf_pending = out_buf_current;
+
+            // if (out_buf_current < 9)
+            //     out_buf_current++;
+            // else
+            //     out_buf_current = 0;
+
+                dump_pgm(outbuffer[out_buf_pending].frame_data,outbuffer[out_buf_pending].size,outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
+
+            // dump_pgm(bigbuffer, (size / 2), framecnt, &frame_time);
         }
         else if (fmt.fmt.pix.pixelformat == V4L2_PIX_FMT_RGB24)
         {
@@ -427,7 +460,7 @@ static void process_image(const void *p, int size)
 
 static int read_frame(void)
 {
-    
+
     struct v4l2_buffer buf;
     unsigned int i;
 
@@ -526,7 +559,7 @@ static int read_frame(void)
     }
 
     // printf("R");
-    
+
     return 1;
 }
 
@@ -1017,24 +1050,22 @@ void *Sequencer(void *threadp)
     sleep_time.tv_sec = SEQ_SECONDS;
     sleep_time.tv_nsec = SEQ_NANOSECONDS;
 
-    double acq_time = getTimeMsec();
-    // , sel_time = getTimeMsec(), dump_time = getTimeMsec();
-    int cnt_acq = 0; 
-    int frame_count = NUM_PICTURES;
-    // cnt_sel = 0, cnt_dump = 0;
+    double acq_time = getTimeMsec(), sel_time = getTimeMsec(), dump_time = getTimeMsec();
+    int cnt_acq = 0;
+    int frame_count = NUM_PICTURES, cnt_sel = 0, cnt_dump = 0;
 
     while (frame_count > 0)
     {
         cnt_acq++;
-        // cnt_sel++;
-        // cnt_dump++;
+        cnt_sel++;
+        cnt_dump++;
 
         if (cnt_acq == ACQ_PERIOD)
         {
             sem_post(&semAcqPicture);
             // syslog(LOG_CRIT,"This should be 32ms %f\n", getTimeMsec() - acq_time);
-            // printf("This should be 32ms %f\n", getTimeMsec() - acq_time);
-            // acq_time = getTimeMsec();
+            printf("This should be 32ms %f\n", getTimeMsec() - acq_time);
+            acq_time = getTimeMsec();
             frame_count--;
             cnt_acq = 0;
         }
@@ -1046,14 +1077,37 @@ void *Sequencer(void *threadp)
         //     cnt_sel = 0;
         // }
 
-        // if (cnt_dump == 60)
+        // if (cnt_dump == DUMP_PERIOD)
         // {
-        //     printf("This should be 1000ms %f\n", getTimeMsec() - dump_time);
+        //     sem_post(&semDumpPicture)
+        //         printf("This should be 2000ms %f\n", getTimeMsec() - dump_time);
         //     dump_time = getTimeMsec();
         //     cnt_dump = 0;
-        // }        
+        // }
         nanosleep(&sleep_time, &time_error);
     }
 
     pthread_exit((void *)0);
 }
+
+// void *dump_thread(void *threadparams)
+// {
+//     while (!abort)
+//     {
+//         sem_wait(&semDumpPicture);
+//         if (out_buf_pending >= 0 && out_buf_pending < out_buf_current)
+//         {
+//             dump_pgm(outbuffer[out_buf_pending].frame_data,outbuffer[out_buf_pending].size,outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
+            
+//             if(out_buf_pending == 0)
+//                 out_buf_pending = 99;
+//             else
+//                 out_buf_pending--;
+
+//         }
+//         else
+//         {
+//             printf("ERROR Line 1101 \n\r");
+//         }
+//     }
+// }
