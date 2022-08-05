@@ -1086,7 +1086,7 @@ void *Sequencer(void *threadp)
         if (cnt_dump == DUMP_PERIOD)
         {
             sem_post(&semDumpPicture);
-                printf("This should be 2000ms %f\n", getTimeMsec() - dump_time);
+            printf("This should be 2000ms %f\n", getTimeMsec() - dump_time);
             dump_time = getTimeMsec();
             cnt_dump = 0;
         }
