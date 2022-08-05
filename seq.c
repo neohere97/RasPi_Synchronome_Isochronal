@@ -1101,9 +1101,9 @@ void *dump_thread(void *threadparams)
     while (!abortTest)
     {
         sem_wait(&semDumpPicture);
-        if (out_buf_pending >= 0 && out_buf_pending < out_buf_current)
+        while (out_buf_pending >= 0 && out_buf_pending < out_buf_current)
         {
-            // dump_pgm(outbuffer[out_buf_pending].frame_data,outbuffer[out_buf_pending].size,outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
+            dump_pgm(outbuffer[out_buf_pending].frame_data,outbuffer[out_buf_pending].size,outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
             printf("outbuf_pending is -> %d \n\n", out_buf_pending);
             if(out_buf_pending == 0)
                 out_buf_pending = 99;
@@ -1111,9 +1111,9 @@ void *dump_thread(void *threadparams)
                 out_buf_pending--;
 
         }
-        else
-        {
-            printf("ERROR Line 1101 \n\r");
-        }
+        // else
+        // {
+        //     printf("ERROR Line 1101 \n\r");
+        // }
     }
 }
