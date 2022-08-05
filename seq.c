@@ -232,6 +232,7 @@ int main(int argc, char *argv[])
     
     pthread_join(acqthread, NULL);
     pthread_join(dumpthread, NULL);
+    abortTest = 1;
     pthread_join(startthread, NULL);
 
 }
@@ -1063,13 +1064,13 @@ void *Sequencer(void *threadp)
     int cnt_acq = 0;
     int frame_count = NUM_PICTURES, cnt_sel = 0, cnt_dump = 0;
 
-    while (frame_count > 0)
+    while (!abortTest)
     {
         cnt_acq++;
         cnt_sel++;
         cnt_dump++;
 
-        if (cnt_acq == ACQ_PERIOD)
+        if (cnt_acq == ACQ_PERIOD && frame_count > 0)
         {
             sem_post(&semAcqPicture);
             // syslog(LOG_CRIT,"This should be 32ms %f\n", getTimeMsec() - acq_time);
@@ -1104,14 +1105,14 @@ void *dump_thread(void *threadparams)
     while (!abortTest)
     {
         sem_wait(&semDumpPicture);
-        while (out_buf_pending >= 0 && out_buf_pending != 99)
+        while (out_buf_pending != out_buf_current && out_buf_pending != 99)
         {
             dump_pgm(outbuffer[out_buf_pending].frame_data,outbuffer[out_buf_pending].size,outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
             printf("outbuf_pending is -> %d \n\n", out_buf_pending);
-            if(out_buf_pending == 0)
-                out_buf_pending = 99;
-            else
-                out_buf_pending--;
+            if(out_buf_pending == 9)
+                out_buf_pending = 0;
+            else 
+                out_buf_pending++;
 
         }
         // else
