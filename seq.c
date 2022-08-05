@@ -1101,7 +1101,7 @@ void *dump_thread(void *threadparams)
     while (!abortTest)
     {
         sem_wait(&semDumpPicture);
-        while (out_buf_pending >= 0 && out_buf_pending < out_buf_current)
+        while (out_buf_pending >= 0 && out_buf_pending != 99)
         {
             dump_pgm(outbuffer[out_buf_pending].frame_data,outbuffer[out_buf_pending].size,outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
             printf("outbuf_pending is -> %d \n\n", out_buf_pending);
