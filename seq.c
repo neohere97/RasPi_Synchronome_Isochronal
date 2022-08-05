@@ -27,7 +27,7 @@
 #define NUM_STABLE_FRAMES 181
 #define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
 #define ACQ_PERIOD 60
-#define DUMP_PERIOD 157
+#define DUMP_PERIOD 102
 #define TRANSFORM 0
 
 #define SEQ_SECONDS 0
@@ -229,8 +229,11 @@ int main(int argc, char *argv[])
                    (void *)0         // parameters to pass in
     );
 
+    
     pthread_join(acqthread, NULL);
+    pthread_join(dumpthread, NULL);
     pthread_join(startthread, NULL);
+
 }
 
 // ------------------------------SIMPLE_CAPTURE_CODE---------------------------------------------
@@ -1116,4 +1119,5 @@ void *dump_thread(void *threadparams)
         //     printf("ERROR Line 1101 \n\r");
         // }
     }
+    pthread_exit((void *)0);
 }
