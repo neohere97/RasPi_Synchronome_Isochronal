@@ -445,7 +445,7 @@ static void process_image(const void *p, int size)
             else
                 out_buf_current = 0;
 
-            dump_pgm(outbuffer[out_buf_pending].frame_data,outbuffer[out_buf_pending].size,outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
+            // dump_pgm(outbuffer[out_buf_pending].frame_data,outbuffer[out_buf_pending].size,outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
 
             // dump_pgm(bigbuffer, (size / 2), framecnt, &frame_time);
         }
