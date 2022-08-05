@@ -43,7 +43,7 @@ struct metaframe
     unsigned int size;
 };
 
-struct metaframe outbuffer [10];
+struct metaframe outbuffer[10];
 unsigned int out_buf_pending;
 unsigned int out_buf_current;
 unsigned char abortTest;
@@ -223,18 +223,16 @@ int main(int argc, char *argv[])
                    (void *)0         // parameters to pass in
     );
 
-    pthread_create(&dumpthread,       // pointer to thread descriptor
+    pthread_create(&dumpthread,      // pointer to thread descriptor
                    &fifo_sched_attr, // use FIFO RT max priority attributes
-                   dump_thread,     // thread function entry point
+                   dump_thread,      // thread function entry point
                    (void *)0         // parameters to pass in
     );
 
-    
     pthread_join(acqthread, NULL);
-    pthread_join(dumpthread, NULL);  
-    abortTest = 1;  
+    pthread_join(dumpthread, NULL);
+    abortTest = 1;
     pthread_join(startthread, NULL);
-
 }
 
 // ------------------------------SIMPLE_CAPTURE_CODE---------------------------------------------
@@ -428,13 +426,11 @@ static void process_image(const void *p, int size)
                 {
                     outbuffer[out_buf_current].frame_data[newi] = pptr[i];
                     outbuffer[out_buf_current].frame_data[newi + 1] = pptr[i + 2];
-                    // bigbuffer[newi] = pptr[i];
-                    // bigbuffer[newi + 1] = pptr[i + 2];
                 }
                 else
                 {
-                    bigbuffer[newi] = 255 - pptr[i];
-                    bigbuffer[newi + 1] = 255 - pptr[i + 2];
+                    outbuffer[out_buf_current].frame_data[newi] = 255 - pptr[i];
+                    outbuffer[out_buf_current].frame_data[newi + 1] = 255 - pptr[i + 2];
                 }
             }
             outbuffer[out_buf_current].size = (size / 2);
@@ -448,7 +444,6 @@ static void process_image(const void *p, int size)
                 out_buf_current++;
             else
                 out_buf_current = 0;
-
 
             // dump_pgm(bigbuffer, (size / 2), framecnt, &frame_time);
         }
@@ -1108,11 +1103,11 @@ void *dump_thread(void *threadparams)
         sem_wait(&semDumpPicture);
         while (out_buf_pending != out_buf_current && out_buf_pending != 99)
         {
-            dump_pgm(outbuffer[out_buf_pending].frame_data,outbuffer[out_buf_pending].size,outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
+            dump_pgm(outbuffer[out_buf_pending].frame_data, outbuffer[out_buf_pending].size, outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
             printf("outbuf_pending is -> %d \n\n", out_buf_pending);
-            if(out_buf_pending == 9)
+            if (out_buf_pending == 9)
                 out_buf_pending = 0;
-            else 
+            else
                 out_buf_pending++;
 
             dump_count++;
