@@ -1083,13 +1083,13 @@ void *Sequencer(void *threadp)
         //     cnt_sel = 0;
         // }
 
-        // if (cnt_dump == DUMP_PERIOD)
-        // {
-        //     sem_post(&semDumpPicture);
-        //         printf("This should be 2000ms %f\n", getTimeMsec() - dump_time);
-        //     dump_time = getTimeMsec();
-        //     cnt_dump = 0;
-        // }
+        if (cnt_dump == DUMP_PERIOD)
+        {
+            sem_post(&semDumpPicture);
+                printf("This should be 2000ms %f\n", getTimeMsec() - dump_time);
+            dump_time = getTimeMsec();
+            cnt_dump = 0;
+        }
         nanosleep(&sleep_time, &time_error);
     }
 
