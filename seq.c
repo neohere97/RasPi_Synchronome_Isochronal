@@ -46,7 +46,7 @@ struct metaframe
     unsigned int size;
 };
 
-struct metaframe outbuffer[120];
+struct metaframe outbuffer[90];
 struct metaframe acqbuffer[30];
 
 unsigned int out_buf_pending;
@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
     CPU_ZERO(&cpuset);
 
     abortTest = 0;
-    out_buf_pending = 99;
+    out_buf_pending = 999;
     out_buf_current = 0;
 
     uname(&sysname);
@@ -455,7 +455,7 @@ static void process_image(const void *p, int size)
             if (out_buf_pending == 999)
                 out_buf_pending = out_buf_current;
 
-            if (out_buf_current < 119)
+            if (out_buf_current < 89)
                 out_buf_current++;
             else
                 out_buf_current = 0;
@@ -1123,7 +1123,7 @@ void *dump_thread(void *threadparams)
         while (out_buf_pending != out_buf_current && out_buf_pending != 999)
         {
             dump_pgm(outbuffer[out_buf_pending].frame_data, outbuffer[out_buf_pending].size, outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
-            if (out_buf_pending == 119)
+            if (out_buf_pending == 89)
                 out_buf_pending = 0;
             else
                 out_buf_pending++;
