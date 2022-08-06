@@ -25,11 +25,11 @@
 #define NUM_THREADS 64
 #define NUM_CPUS 8
 #define NUM_SKIPS 25
-#define NUM_STABLE_FRAMES 1801
+#define NUM_STABLE_FRAMES 181
 #define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
 #define ACQ_PERIOD 60
 #define DUMP_PERIOD 71
-#define TRANSFORM 1
+#define TRANSFORM 0
 
 #define SEQ_SECONDS 0
 // #define SEQ_NANOSECONDS 8330000
@@ -44,9 +44,15 @@ struct metaframe
     unsigned int size;
 };
 
-struct metaframe outbuffer[10];
+struct metaframe outbuffer[30];
+struct metaframe acqbuffer[30];
+
 unsigned int out_buf_pending;
 unsigned int out_buf_current;
+
+unsigned int acq_buf_pending;
+unsigned int acq_buf_current;
+
 unsigned char abortTest;
 
 typedef struct
@@ -56,7 +62,7 @@ typedef struct
 
 // POSIX thread declarations and scheduling attributes
 //
-sem_t semAcqPicture, semDumpPicture;
+sem_t semAcqPicture, semDumpPicture, semFrameSelector;
 
 pthread_t threads[NUM_THREADS];
 pthread_t mainthread;
@@ -111,6 +117,7 @@ static void open_device(void);
 static void usage(FILE *fp, int argc, char **argv);
 void *take_picture(void *threadp);
 void *dump_thread(void *threadparams);
+// void *frame_selector(void *threadparams);
 
 double getTimeMsec(void)
 {
@@ -294,7 +301,7 @@ char pgm_dumpname[] = "frames/test0000.pgm";
 
 static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec *time)
 {
-    double acq_inittime = getTimeMsec();
+    // double acq_inittime = getTimeMsec();
     int written, i, total, dumpfd;
 
     snprintf(&pgm_dumpname[11], 9, "%04d", tag - NUM_SKIPS);
@@ -314,11 +321,8 @@ static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec 
         written = write(dumpfd, p, size);
         total += written;
     } while (total < size);
-
-    printf("wrote %d bytes\n", total);
-
     close(dumpfd);
-    syslog(LOG_CRIT, "time_ms,%f", getTimeMsec() - acq_inittime);
+    // syslog(LOG_CRIT, "time_ms,%f", getTimeMsec() - acq_inittime);
 }
 
 void yuv2rgb_float(float y, float u, float v,
@@ -442,7 +446,7 @@ static void process_image(const void *p, int size)
             if (out_buf_pending == 99)
                 out_buf_pending = out_buf_current;
 
-            if (out_buf_current < 9)
+            if (out_buf_current < 29)
                 out_buf_current++;
             else
                 out_buf_current = 0;
@@ -1109,7 +1113,7 @@ void *dump_thread(void *threadparams)
         while (out_buf_pending != out_buf_current && out_buf_pending != 99)
         {
             dump_pgm(outbuffer[out_buf_pending].frame_data, outbuffer[out_buf_pending].size, outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
-            if (out_buf_pending == 9)
+            if (out_buf_pending == 29)
                 out_buf_pending = 0;
             else
                 out_buf_pending++;
@@ -1120,3 +1124,15 @@ void *dump_thread(void *threadparams)
     printf("Exiting Dumper \n\n");
     pthread_exit((void *)0);
 }
+
+
+// void *frame_selector(void *threadparams)
+// {
+//     while (dump_count != NUM_STABLE_FRAMES)
+//     {        
+//         sem_wait(&semFrameSelector);
+
+//     }
+//     printf("Exiting Frame Selector \n\n");
+//     pthread_exit((void *)0);
+// }
