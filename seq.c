@@ -310,7 +310,7 @@ static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec 
     int written, i, total, dumpfd;
     char *uname_header = malloc(30 * sizeof(char));
     char *new_header = malloc(100 * sizeof(char));
-    
+
     snprintf(&pgm_dumpname[11], 9, "%04d", tag - NUM_SKIPS);
     strncat(&pgm_dumpname[15], ".pgm", 5);
     dumpfd = open(pgm_dumpname, O_WRONLY | O_NONBLOCK | O_CREAT, 00666);
@@ -324,7 +324,7 @@ static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec 
     strcat(new_header, pgm_header);
     strcat(new_header, uname_header);
 
-    written = write(dumpfd, pgm_header, sizeof(pgm_header));
+    written = write(dumpfd, new_header, sizeof(new_header));
 
     total = 0;
 
