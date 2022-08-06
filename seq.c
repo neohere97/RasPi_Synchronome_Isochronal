@@ -303,8 +303,8 @@ static void dump_ppm(const void *p, int size, unsigned int tag, struct timespec 
 
 char pgm_header[] = "P5\n#9999999999 sec 9999999999 msec \n" HRES_STR " " VRES_STR "\n255\n";
 char pgm_dumpname[] = "frames/test0000.pgm";
-char uname_header[30];
-char new_header[100];
+char *uname_header;
+char *new_header;
 static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec *time)
 {
     // double acq_inittime = getTimeMsec();
