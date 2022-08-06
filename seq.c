@@ -1179,7 +1179,7 @@ void *frame_selector(void *threadparams)
 
             sel_count++;
         }
-        printf("Dump thread, acq_buf_pending -> %d, acq_buf_current -> %d \n\n", acq_buf_pending, acq_buf_current);
+        printf("sel_thread, acq_buf_pending -> %d, acq_buf_current -> %d \n\n", acq_buf_pending, acq_buf_current);
     }
     printf("Exiting Frame Selector \n\n");
     pthread_exit((void *)0);
