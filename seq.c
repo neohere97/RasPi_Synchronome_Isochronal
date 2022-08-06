@@ -240,7 +240,7 @@ int main(int argc, char *argv[])
                    (void *)0         // parameters to pass in
     );
 
-    set_scheduler(1, 1);
+    set_scheduler(3, 0);
 
     pthread_create(&selthread,       // pointer to thread descriptor
                    &fifo_sched_attr, // use FIFO RT max priority attributes
@@ -248,7 +248,7 @@ int main(int argc, char *argv[])
                    (void *)0         // parameters to pass in
     );
 
-    set_scheduler(3, 0);
+    set_scheduler(3, 1);
     pthread_create(&dumpthread,      // pointer to thread descriptor
                    &fifo_sched_attr, // use FIFO RT max priority attributes
                    dump_thread,      // thread function entry point
