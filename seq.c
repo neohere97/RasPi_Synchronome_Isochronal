@@ -46,8 +46,8 @@ struct metaframe
     unsigned int size;
 };
 
-struct metaframe outbuffer[30];
-struct metaframe acqbuffer[30];
+struct metaframe outbuffer[90];
+struct metaframe acqbuffer[90];
 
 unsigned int out_buf_pending;
 unsigned int out_buf_current;
