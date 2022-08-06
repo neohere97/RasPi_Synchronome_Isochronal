@@ -319,7 +319,7 @@ static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec 
     strncat(&pgm_header[29], " msec \n" HRES_STR " " VRES_STR "\n255\n", 19);
     snprintf(&pgm_header[19], 11, "%010d", (int)((time->tv_nsec) / 1000000));
     sprintf(&uname_header,"%S %S %S %S \n", sysname.sysname,sysname.nodename,sysname.release, sysname.machine);
-    sprintf(&pgm_header,"%S", uname_header);
+    strncat(&pgm_header, &uname_header);
 
     written = write(dumpfd, pgm_header, sizeof(pgm_header));
 
