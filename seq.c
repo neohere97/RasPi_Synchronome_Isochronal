@@ -1107,7 +1107,7 @@ void *Sequencer(void *threadp)
 
         if (cnt_sel == SEL_PERIOD)
         {
-            sem_poost(&semFrameSelector);
+            sem_post(&semFrameSelector);
             // printf("This should be 500ms %f\n", getTimeMsec() - sel_time);
             // sel_time = getTimeMsec();
             cnt_sel = 0;
