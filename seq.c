@@ -47,7 +47,7 @@ struct metaframe
 };
 
 struct metaframe outbuffer[120];
-struct metaframe acqbuffer[120];
+struct metaframe acqbuffer[30];
 
 unsigned int out_buf_pending;
 unsigned int out_buf_current;
