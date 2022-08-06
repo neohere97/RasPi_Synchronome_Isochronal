@@ -1098,8 +1098,8 @@ void *Sequencer(void *threadp)
         if (cnt_acq == ACQ_PERIOD && frame_count > 0)
         {
             sem_post(&semAcqPicture);
-            // syslog(LOG_CRIT,"This should be 32ms %f\n", getTimeMsec() - acq_time);
-            printf("This should be 1000ms %f\n", getTimeMsec() - acq_time);
+            syslog(LOG_CRIT,"time_ms", getTimeMsec() - acq_time);
+            // printf("This should be 1000ms %f\n", getTimeMsec() - acq_time);
             acq_time = getTimeMsec();
             frame_count--;
             cnt_acq = 0;
