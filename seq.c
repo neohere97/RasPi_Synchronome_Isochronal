@@ -29,7 +29,8 @@
 #define NUM_STABLE_FRAMES 181
 #define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
 #define ACQ_PERIOD 60
-#define DUMP_PERIOD 71
+#define DUMP_PERIOD 133
+#define SEL_PERIOD 71
 #define TRANSFORM 0
 
 #define SEQ_SECONDS 0
@@ -120,7 +121,7 @@ static void open_device(void);
 static void usage(FILE *fp, int argc, char **argv);
 void *take_picture(void *threadp);
 void *dump_thread(void *threadparams);
-// void *frame_selector(void *threadparams);
+void *frame_selector(void *threadparams);
 
 double getTimeMsec(void)
 {
@@ -1134,13 +1135,13 @@ void *dump_thread(void *threadparams)
 }
 
 
-// void *frame_selector(void *threadparams)
-// {
-//     while (dump_count != NUM_STABLE_FRAMES)
-//     {        
-//         sem_wait(&semFrameSelector);
+void *frame_selector(void *threadparams)
+{
+    while (dump_count != NUM_STABLE_FRAMES)
+    {        
+        sem_wait(&semFrameSelector);
 
-//     }
-//     printf("Exiting Frame Selector \n\n");
-//     pthread_exit((void *)0);
-// }
+    }
+    printf("Exiting Frame Selector \n\n");
+    pthread_exit((void *)0);
+}

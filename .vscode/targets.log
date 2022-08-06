@@ -8,7 +8,7 @@ make: *** No rule to make target 'seq.o', needed by 'seq'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Thu Aug 04 22:26:18 2022
+# Make data base, printed on Sat Aug 06 13:46:52 2022
 
 # Variables
 
@@ -23,7 +23,7 @@ USERPROFILE = C:\Users\shala
 # environment
 LOCALAPPDATA = C:\Users\shala\AppData\Local
 # environment
-VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-7f06f51e-92cc-466b-9df2-001cd661cb8f-sock
+VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-adb601b6-d27b-4700-bfcb-11e9d5295087-sock
 # makefile (from 'Makefile', line 10)
 CFILES = seq.c
 # environment
@@ -43,7 +43,7 @@ MAKE_COMMAND := C:/ProgramData/chocolatey/lib/make/tools/install/bin/make.exe
 # automatic
 @D = $(patsubst %/,%,$(patsubst %\,%,$(dir $@)))
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_8124_IQGJBEEWRUNMEOPC
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_7180_IUGGSKQRNTDFUQEG
 # environment
 VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 # default
@@ -101,7 +101,7 @@ MAKEFILE_LIST := Makefile
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_PID = 8124
+VSCODE_PID = 7180
 # automatic
 ?D = $(patsubst %/,%,$(patsubst %\,%,$(dir $?)))
 # makefile (from 'Makefile', line 9)
@@ -322,6 +322,6 @@ seq.o:
 # strcache performance: lookups = 27 / hit rate = 40%
 # hash-table stats:
 # Load=16/8192=0%, Rehash=0, Collisions=0/27=0%
-# Finished Make data base on Thu Aug 04 22:26:18 2022
+# Finished Make data base on Sat Aug 06 13:46:52 2022
 
  
