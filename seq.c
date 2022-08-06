@@ -313,7 +313,7 @@ static void dump_ppm(const void *p, int size, unsigned int tag, struct timespec 
     close(dumpfd);
 }
 
-char pgm_header[] = "P5\n#9999999999 sec 9999999999 msec \n Linux raspberrypi 5.15.32-v7l+ #1538 SMP Thu Mar 31 19:39:41 BST 2022 armv7l GNU/Linux \n" HRES_STR " " VRES_STR "\n255\n";
+char pgm_header[] = "P5\n#9999999999 sec 9999999999 msec \n\n" HRES_STR " " VRES_STR "\n255\n";
 char pgm_dumpname[] = "frames/test0000.pgm";
 
 static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec *time)
