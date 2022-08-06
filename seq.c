@@ -303,13 +303,14 @@ static void dump_ppm(const void *p, int size, unsigned int tag, struct timespec 
 
 char pgm_header[] = "P5\n#9999999999 sec 9999999999 msec \n" HRES_STR " " VRES_STR "\n255\n";
 char pgm_dumpname[] = "frames/test0000.pgm";
-char *uname_header;
-char *new_header;
+
 static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec *time)
 {
     // double acq_inittime = getTimeMsec();
     int written, i, total, dumpfd;
-
+    char *uname_header = malloc(30 * sizeof(char));
+    char *new_header = malloc(100 * sizeof(char));
+    
     snprintf(&pgm_dumpname[11], 9, "%04d", tag - NUM_SKIPS);
     strncat(&pgm_dumpname[15], ".pgm", 5);
     dumpfd = open(pgm_dumpname, O_WRONLY | O_NONBLOCK | O_CREAT, 00666);
