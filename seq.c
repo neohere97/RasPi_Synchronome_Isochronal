@@ -1144,7 +1144,7 @@ void *dump_thread(void *threadparams)
 
             dump_count++;
         }
-        printf("Dump thread, out_buf_pending -> %d, out_buf_current -> %d", out_buf_pending, out_buf_current);
+        printf("Dump thread, out_buf_pending -> %d, out_buf_current -> %d \n\n", out_buf_pending, out_buf_current);
     }
 
     printf("Exiting Dumper \n\n");
@@ -1179,7 +1179,7 @@ void *frame_selector(void *threadparams)
 
             sel_count++;
         }
-        printf("Dump thread, acq_buf_pending -> %d, acq_buf_current -> %d", acq_buf_pending, acq_buf_current);
+        printf("Dump thread, acq_buf_pending -> %d, acq_buf_current -> %d \n\n", acq_buf_pending, acq_buf_current);
     }
     printf("Exiting Frame Selector \n\n");
     pthread_exit((void *)0);
