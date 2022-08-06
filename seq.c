@@ -35,7 +35,7 @@
 
 #define SEQ_SECONDS 0
 // #define SEQ_NANOSECONDS 8330000
-#define SEQ_NANOSECONDS 16634600
+#define SEQ_NANOSECONDS 16634666
 
 struct metaframe
 {
@@ -1099,8 +1099,8 @@ void *Sequencer(void *threadp)
         {
             sem_post(&semAcqPicture);
             // syslog(LOG_CRIT,"This should be 32ms %f\n", getTimeMsec() - acq_time);
-            // printf("This should be 32ms %f\n", getTimeMsec() - acq_time);
-            // acq_time = getTimeMsec();
+            printf("This should be 1000ms %f\n", getTimeMsec() - acq_time);
+            acq_time = getTimeMsec();
             frame_count--;
             cnt_acq = 0;
         }
