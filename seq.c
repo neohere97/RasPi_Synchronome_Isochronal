@@ -9,6 +9,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <sys/utsname.h>
 #include <unistd.h>
 #include <sched.h>
 #include <semaphore.h>
@@ -54,6 +55,8 @@ unsigned int acq_buf_pending;
 unsigned int acq_buf_current;
 
 unsigned char abortTest;
+
+struct utsname sysname;
 
 typedef struct
 {
@@ -199,6 +202,8 @@ int main(int argc, char *argv[])
     out_buf_pending = 99;
     out_buf_current = 0;
 
+    uname(&sysname);
+
     // get affinity set for main thread
     mainthread = pthread_self();
 
@@ -298,7 +303,7 @@ static void dump_ppm(const void *p, int size, unsigned int tag, struct timespec 
 
 char pgm_header[] = "P5\n#9999999999 sec 9999999999 msec \n" HRES_STR " " VRES_STR "\n255\n";
 char pgm_dumpname[] = "frames/test0000.pgm";
-
+char uname_header[30];
 static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec *time)
 {
     // double acq_inittime = getTimeMsec();
@@ -312,6 +317,10 @@ static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec 
     strncat(&pgm_header[14], " sec ", 5);
     snprintf(&pgm_header[19], 11, "%010d", (int)((time->tv_nsec) / 1000000));
     strncat(&pgm_header[29], " msec \n" HRES_STR " " VRES_STR "\n255\n", 19);
+    snprintf(&pgm_header[19], 11, "%010d", (int)((time->tv_nsec) / 1000000));
+    sprintf(&uname_header,"%S %S %S %S \n", sysname.sysname,sysname.nodename,sysname.release, sysname.machine);
+    sprintf(&pgm_header,"%S", uname_header);
+
     written = write(dumpfd, pgm_header, sizeof(pgm_header));
 
     total = 0;
