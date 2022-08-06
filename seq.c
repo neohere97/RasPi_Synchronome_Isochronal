@@ -1133,11 +1133,11 @@ void *dump_thread(void *threadparams)
     while (dump_count != NUM_STABLE_FRAMES)
     {
         sem_wait(&semDumpPicture);
-        printf("Dump thread, out_buf_pending -> %d, out_buf_current -> %d \n\n", out_buf_pending, out_buf_current);
+        // printf("Dump thread, out_buf_pending -> %d, out_buf_current -> %d \n\n", out_buf_pending, out_buf_current);
 
         while (out_buf_pending != out_buf_current && out_buf_pending != 999)
         {
-            // dump_pgm(outbuffer[out_buf_pending].frame_data, outbuffer[out_buf_pending].size, outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
+            dump_pgm(outbuffer[out_buf_pending].frame_data, outbuffer[out_buf_pending].size, outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
 
             if (out_buf_pending == 29)
                 out_buf_pending = 0;
@@ -1157,15 +1157,15 @@ void *frame_selector(void *threadparams)
     while (sel_count != NUM_STABLE_FRAMES)
     {
         sem_wait(&semFrameSelector);
-        printf("sel_thread, acq_buf_pending -> %d, acq_buf_current -> %d \n\n", acq_buf_pending, acq_buf_current);
+        // printf("sel_thread, acq_buf_pending -> %d, acq_buf_current -> %d \n\n", acq_buf_pending, acq_buf_current);
 
         while (acq_buf_pending != acq_buf_current && acq_buf_pending != 999)
         {
-            // memcpy(&outbuffer[out_buf_current].frame_data, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
+            memcpy(&outbuffer[out_buf_current].frame_data, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
 
-            // outbuffer[out_buf_current].size = acqbuffer[acq_buf_pending].size;
-            // outbuffer[out_buf_current].frametime = acqbuffer[acq_buf_pending].frametime;
-            // outbuffer[out_buf_current].frame_num = acqbuffer[acq_buf_pending].frame_num;
+            outbuffer[out_buf_current].size = acqbuffer[acq_buf_pending].size;
+            outbuffer[out_buf_current].frametime = acqbuffer[acq_buf_pending].frametime;
+            outbuffer[out_buf_current].frame_num = acqbuffer[acq_buf_pending].frame_num;
 
             if (out_buf_pending == 999)
                 out_buf_pending = out_buf_current;
