@@ -46,8 +46,8 @@ struct metaframe
     unsigned int size;
 };
 
-struct metaframe outbuffer[90];
-struct metaframe acqbuffer[90];
+struct metaframe outbuffer[120];
+struct metaframe acqbuffer[120];
 
 unsigned int out_buf_pending;
 unsigned int out_buf_current;
@@ -452,10 +452,10 @@ static void process_image(const void *p, int size)
             outbuffer[out_buf_current].frametime = &frame_time;
             outbuffer[out_buf_current].frame_num = framecnt;
 
-            if (out_buf_pending == 99)
+            if (out_buf_pending == 999)
                 out_buf_pending = out_buf_current;
 
-            if (out_buf_current < 29)
+            if (out_buf_current < 119)
                 out_buf_current++;
             else
                 out_buf_current = 0;
@@ -1120,10 +1120,10 @@ void *dump_thread(void *threadparams)
     while (dump_count != NUM_STABLE_FRAMES)
     {        
         sem_wait(&semDumpPicture);
-        while (out_buf_pending != out_buf_current && out_buf_pending != 99)
+        while (out_buf_pending != out_buf_current && out_buf_pending != 999)
         {
             dump_pgm(outbuffer[out_buf_pending].frame_data, outbuffer[out_buf_pending].size, outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
-            if (out_buf_pending == 29)
+            if (out_buf_pending == 119)
                 out_buf_pending = 0;
             else
                 out_buf_pending++;
