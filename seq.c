@@ -238,7 +238,7 @@ int main(int argc, char *argv[])
                    take_picture,     // thread function entry point
                    (void *)0         // parameters to pass in
     );
-    set_scheduler(1,1);
+    set_scheduler(3,0);
     pthread_create(&dumpthread,      // pointer to thread descriptor
                    &fifo_sched_attr, // use FIFO RT max priority attributes
                    dump_thread,      // thread function entry point
@@ -1129,8 +1129,7 @@ void *dump_thread(void *threadparams)
                 out_buf_pending++;
 
             dump_count++;            
-        }
-        printf("dump count %d \n\n",dump_count);
+        }        
     }
 
     printf("Exiting Dumper \n\n");
