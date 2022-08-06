@@ -28,9 +28,9 @@
 #define NUM_SKIPS 0
 #define NUM_STABLE_FRAMES 181
 #define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
-#define ACQ_PERIOD 120
-#define DUMP_PERIOD 169
-#define SEL_PERIOD 139
+#define ACQ_PERIOD 60
+#define DUMP_PERIOD 93
+#define SEL_PERIOD 77
 #define TRANSFORM 1
 
 #define SEQ_SECONDS 0
@@ -430,7 +430,7 @@ static void process_image(const void *p, int size)
     // This just dumps the frame to a file now, but you could replace with whatever image
     // processing you wish.
     //
-    if (framecnt > 25)
+    if (framecnt > NUM_SKIPS)
     {
         if (fmt.fmt.pix.pixelformat == V4L2_PIX_FMT_GREY)
         {
@@ -1133,6 +1133,8 @@ void *dump_thread(void *threadparams)
     while (dump_count != NUM_STABLE_FRAMES)
     {
         sem_wait(&semDumpPicture);
+        printf("Dump thread, out_buf_pending -> %d, out_buf_current -> %d \n\n", out_buf_pending, out_buf_current);
+
         while (out_buf_pending != out_buf_current && out_buf_pending != 999)
         {
             // dump_pgm(outbuffer[out_buf_pending].frame_data, outbuffer[out_buf_pending].size, outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
@@ -1144,7 +1146,6 @@ void *dump_thread(void *threadparams)
 
             dump_count++;
         }
-        printf("Dump thread, out_buf_pending -> %d, out_buf_current -> %d \n\n", out_buf_pending, out_buf_current);
     }
 
     printf("Exiting Dumper \n\n");
@@ -1156,6 +1157,8 @@ void *frame_selector(void *threadparams)
     while (sel_count != NUM_STABLE_FRAMES)
     {
         sem_wait(&semFrameSelector);
+        printf("sel_thread, acq_buf_pending -> %d, acq_buf_current -> %d \n\n", acq_buf_pending, acq_buf_current);
+
         while (acq_buf_pending != acq_buf_current && acq_buf_pending != 999)
         {
             // memcpy(&outbuffer[out_buf_current].frame_data, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
@@ -1179,7 +1182,6 @@ void *frame_selector(void *threadparams)
 
             sel_count++;
         }
-        printf("sel_thread, acq_buf_pending -> %d, acq_buf_current -> %d \n\n", acq_buf_pending, acq_buf_current);
     }
     printf("Exiting Frame Selector \n\n");
     pthread_exit((void *)0);
