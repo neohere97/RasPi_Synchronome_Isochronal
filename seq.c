@@ -1116,6 +1116,7 @@ void *Sequencer(void *threadp)
 unsigned int dump_count = 0;
 void *dump_thread(void *threadparams)
 {
+
     while (dump_count != NUM_STABLE_FRAMES)
     {        
         sem_wait(&semDumpPicture);
@@ -1129,7 +1130,9 @@ void *dump_thread(void *threadparams)
 
             dump_count++;            
         }
+        printf("dump count %d \n\n",dump_count);
     }
+
     printf("Exiting Dumper \n\n");
     pthread_exit((void *)0);
 }
