@@ -301,15 +301,13 @@ static void dump_ppm(const void *p, int size, unsigned int tag, struct timespec 
     close(dumpfd);
 }
 
-char pgm_header[] = "P5\n#9999999999 sec 9999999999 msec \n" HRES_STR " " VRES_STR "\n255\n";
+char pgm_header[] = "P5\n#9999999999 sec 9999999999 msec Linux raspberrypi 5.15.32-v7l+ #1538 SMP Thu Mar 31 19:39:41 BST 2022 armv7l GNU/Linux \n" HRES_STR " " VRES_STR "\n255\n";
 char pgm_dumpname[] = "frames/test0000.pgm";
 
 static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec *time)
 {
     // double acq_inittime = getTimeMsec();
-    int written, i, total, dumpfd;
-    char *uname_header = malloc(30 * sizeof(char));
-    char *new_header = malloc(100 * sizeof(char));
+    int written, i, total, dumpfd;   
 
     snprintf(&pgm_dumpname[11], 9, "%04d", tag - NUM_SKIPS);
     strncat(&pgm_dumpname[15], ".pgm", 5);
@@ -318,13 +316,11 @@ static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec 
     snprintf(&pgm_header[4], 11, "%010d", (int)time->tv_sec);
     strncat(&pgm_header[14], " sec ", 5);
     snprintf(&pgm_header[19], 11, "%010d", (int)((time->tv_nsec) / 1000000));
+    snprintf(&pgm_header[19], 11, "%010d", (int)((time->tv_nsec) / 1000000));
     strncat(&pgm_header[29], " msec \n" HRES_STR " " VRES_STR "\n255\n", 19);
     snprintf(&pgm_header[19], 11, "%010d", (int)((time->tv_nsec) / 1000000));
-    sprintf(uname_header,"%S %S %S %S \n", sysname.sysname,sysname.nodename,sysname.release, sysname.machine);
-    strcat(new_header, pgm_header);
-    strcat(new_header, uname_header);
-
-    written = write(dumpfd, new_header, sizeof(new_header));
+  
+    written = write(dumpfd, pgm_header, sizeof(pgm_header));
 
     total = 0;
 
