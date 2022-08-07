@@ -29,7 +29,7 @@
 #define NUM_STABLE_FRAMES 181
 #define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
 
-#define ONEHZ
+// #define ONEHZ
 
 #ifdef ONEHZ
 #define ACQ_PERIOD 20
