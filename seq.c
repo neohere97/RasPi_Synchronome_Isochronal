@@ -1184,7 +1184,7 @@ void *frame_selector(void *threadparams)
                         frame_diff_avg += diff;
                 }
             }
-            if (frame_diff_avg > 20000)
+            if (frame_diff_avg > 30000)
             {
                 printf("Frame diff between Frame %d - Frame %d is -> %ld \n\n", frame_temp_num, acqbuffer[acq_buf_pending].frame_num, frame_diff_avg);
 
