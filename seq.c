@@ -1180,7 +1180,7 @@ void *frame_selector(void *threadparams)
                 {
                     diff = abs(temp_buffer[i] - acqbuffer[acq_buf_pending].frame_data[i]);
                     
-                    if(diff > 20)
+                    if(diff > 30)
                     frame_diff_avg += diff;
                 
                 }
