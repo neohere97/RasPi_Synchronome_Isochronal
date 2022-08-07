@@ -28,14 +28,26 @@
 #define NUM_SKIPS 25
 #define NUM_STABLE_FRAMES 1801
 #define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
+
+// #define ONEHZ
+
+#ifdef ONEHZ
+#define ACQ_PERIOD 60
+#define DUMP_PERIOD 133
+#define SEL_PERIOD 89
+#define SEQ_NANOSECONDS 16634666
+#else
 #define ACQ_PERIOD 6
 #define DUMP_PERIOD 13
 #define SEL_PERIOD 8
+#define SEQ_NANOSECONDS 16634000
+#endif
+
 #define TRANSFORM 0
 
 #define SEQ_SECONDS 0
 // #define SEQ_NANOSECONDS 8330000
-#define SEQ_NANOSECONDS 16634600
+// #define SEQ_NANOSECONDS 16634666
 
 struct metaframe
 {
