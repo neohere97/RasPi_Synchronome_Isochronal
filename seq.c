@@ -602,11 +602,14 @@ static int read_frame(void)
     return 1;
 }
 
+unsigned int dump_count = 0;
+unsigned int sel_count = 0;
+
 void *take_picture(void *threadp)
 {
     unsigned int count;
     count = 0;
-    while (count < NUM_PICTURES)
+    while (dump_count != NUM_STABLE_FRAMES)
     {
         sem_wait(&semAcqPicture);
         syslog(LOG_CRIT, "TPtime_ms,%lf", getTimeMsec());
@@ -1127,8 +1130,7 @@ void *Sequencer(void *threadp)
     printf("Exiting Sequencer \n\n");
     pthread_exit((void *)0);
 }
-unsigned int dump_count = 0;
-unsigned int sel_count = 0;
+
 void *dump_thread(void *threadparams)
 {
 
