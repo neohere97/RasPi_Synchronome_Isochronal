@@ -1177,7 +1177,7 @@ void *frame_selector(void *threadparams)
             {
                 for (int i = 0; i < acqbuffer[acq_buf_pending].size - 1; i++)
                 {
-                    frame_diff_avg += (temp_buffer[i] - acqbuffer[acq_buf_pending].frame_data[i]);
+                    frame_diff_avg += abs(temp_buffer[i] - acqbuffer[acq_buf_pending].frame_data[i]);
                 }
                 printf("Frame diff between Frame %d - Frame %d is -> %ld \n\n", frame_temp_num, acqbuffer[acq_buf_pending].frame_num, frame_diff_avg);
             }
