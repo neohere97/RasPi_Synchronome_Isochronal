@@ -322,7 +322,7 @@ static void dump_ppm(const void *p, int size, unsigned int tag, struct timespec 
     close(dumpfd);
 }
 
-char pgm_header[] = "P5\n#9999999999 sec 9999999999 msec\n\n" HRES_STR " " VRES_STR "\n255\n";
+char pgm_header[] = "P5\n#9999999999 sec 9999999999 msec Linux raspberrypi 5.15.32-v7l+ #1538 SMP Thu Mar 31 19:39:41 BST 2022 armv7l GNU/Linux \n\n" HRES_STR " " VRES_STR "\n255\n";
 char pgm_dumpname[] = "frames/test0000.pgm";
 
 static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec *time)
@@ -1180,27 +1180,26 @@ void *frame_selector(void *threadparams)
                 {
                     diff = abs(temp_buffer[i] - acqbuffer[acq_buf_pending].frame_data[i]);
 
-                    if (diff > 50)
+                    if (diff > 75)
                         frame_diff_avg += diff;
                 }
-              printf("Frame diff between Frame %d - Frame %d is -> %ld \n\n", frame_temp_num, acqbuffer[acq_buf_pending].frame_num, frame_diff_avg);
-
+                printf("Frame diff between Frame %d - Frame %d is -> %ld \n\n", frame_temp_num, acqbuffer[acq_buf_pending].frame_num, frame_diff_avg);
             }
             // if (frame_diff_avg > 23000)
             // {
 
-                memcpy(&outbuffer[out_buf_current].frame_data, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
-                outbuffer[out_buf_current].size = acqbuffer[acq_buf_pending].size;
-                outbuffer[out_buf_current].frametime = acqbuffer[acq_buf_pending].frametime;
-                outbuffer[out_buf_current].frame_num = acqbuffer[acq_buf_pending].frame_num;
+            memcpy(&outbuffer[out_buf_current].frame_data, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
+            outbuffer[out_buf_current].size = acqbuffer[acq_buf_pending].size;
+            outbuffer[out_buf_current].frametime = acqbuffer[acq_buf_pending].frametime;
+            outbuffer[out_buf_current].frame_num = acqbuffer[acq_buf_pending].frame_num;
 
-                if (out_buf_pending == 999)
-                    out_buf_pending = out_buf_current;
+            if (out_buf_pending == 999)
+                out_buf_pending = out_buf_current;
 
-                if (out_buf_current < 29)
-                    out_buf_current++;
-                else
-                    out_buf_current = 0;
+            if (out_buf_current < 29)
+                out_buf_current++;
+            else
+                out_buf_current = 0;
             // }
 
             frame_temp_num = acqbuffer[acq_buf_pending].frame_num;
