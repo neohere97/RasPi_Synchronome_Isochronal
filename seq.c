@@ -1184,8 +1184,8 @@ void *frame_selector(void *threadparams)
                         frame_diff_avg += diff;
                 }
             }
-            if (frame_diff_avg > 30000)
-            {
+            // if (frame_diff_avg > 23000)
+            // {
                 printf("Frame diff between Frame %d - Frame %d is -> %ld \n\n", frame_temp_num, acqbuffer[acq_buf_pending].frame_num, frame_diff_avg);
 
                 memcpy(&outbuffer[out_buf_current].frame_data, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
@@ -1200,7 +1200,7 @@ void *frame_selector(void *threadparams)
                     out_buf_current++;
                 else
                     out_buf_current = 0;
-            }
+            // }
 
             frame_temp_num = acqbuffer[acq_buf_pending].frame_num;
             memcpy(&temp_buffer, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
