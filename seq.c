@@ -257,7 +257,7 @@ int main(int argc, char *argv[])
                    frame_selector,
                    (void *)0);
 
-    set_scheduler(3, 1);
+    set_scheduler(3, 5);
     pthread_create(&dumpthread,      // pointer to thread descriptor
                    &fifo_sched_attr, // use FIFO RT max priority attributes
                    dump_thread,      // thread function entry point
