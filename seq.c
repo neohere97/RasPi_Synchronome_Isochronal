@@ -67,7 +67,7 @@ unsigned int out_buf_current;
 unsigned int acq_buf_pending;
 unsigned int acq_buf_current;
 
-unsigned char abortTest;
+unsigned int abortTest;
 
 struct utsname sysname;
 
@@ -264,11 +264,9 @@ int main(int argc, char *argv[])
                    (void *)0         // parameters to pass in
     );
 
-    pthread_join(dumpthread, NULL);
-    abortTest = 1;
+    pthread_join(dumpthread, NULL);    
     pthread_join(acqthread, NULL);
     pthread_join(selthread, NULL);    
-    
     pthread_join(startthread, NULL);
 }
 
@@ -331,7 +329,7 @@ static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec 
 
     int written, i, total, dumpfd;
 
-    snprintf(&pgm_dumpname[11], 9, "%04d", tag);
+    snprintf(&pgm_dumpname[11], 9, "%04d", tag - NUM_SKIPS);
     strncat(&pgm_dumpname[15], ".pgm", 5);
     dumpfd = open(pgm_dumpname, O_WRONLY | O_NONBLOCK | O_CREAT, 00666);
 
@@ -1152,7 +1150,8 @@ void *dump_thread(void *threadparams)
 
             dump_count++;
         }
-    }    
+    } 
+    abortTest = 1;   
     printf("Exiting Dumper \n\n");
     pthread_exit((void *)0);
 }
