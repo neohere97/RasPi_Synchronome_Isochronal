@@ -600,7 +600,7 @@ void *take_picture(void *threadp)
     while (count < NUM_PICTURES)
     {
         sem_wait(&semAcqPicture);
-        double acq_inittime = getTimeMsec();
+        syslog(LOG_CRIT, "TPtime_ms,%lf", getTimeMsec());
         count++;
         for (;;)
         {
@@ -632,8 +632,7 @@ void *take_picture(void *threadp)
 
             if (read_frame())
                 break;
-        }
-        syslog(LOG_CRIT, "TPtime_ms,%04f", getTimeMsec() - acq_inittime);
+        }        
     }
     printf("Exiting Take Picture \n\n");
     pthread_exit((void *)0);
@@ -1127,7 +1126,7 @@ void *dump_thread(void *threadparams)
     while (dump_count != NUM_STABLE_FRAMES)
     {
         sem_wait(&semDumpPicture);
-        double acq_inittime = getTimeMsec();
+        syslog(LOG_CRIT, "FWtime_ms,%lf", getTimeMsec() - acq_inittime);
         // printf("Dump thread, out_buf_pending -> %d, out_buf_current -> %d \n\n", out_buf_pending, out_buf_current);
 
         while (out_buf_pending != out_buf_current && out_buf_pending != 999)
@@ -1141,7 +1140,7 @@ void *dump_thread(void *threadparams)
 
             dump_count++;
         }
-        syslog(LOG_CRIT, "FWtime_ms,%04f", getTimeMsec() - acq_inittime);
+        
     }
 
     printf("Exiting Dumper \n\n");
@@ -1153,7 +1152,7 @@ void *frame_selector(void *threadparams)
     while (sel_count != NUM_STABLE_FRAMES)
     {
         sem_wait(&semFrameSelector);
-        double acq_inittime = getTimeMsec();
+        syslog(LOG_CRIT, "FStime_ms,%lf", getTimeMsec());
         // printf("sel_thread, acq_buf_pending -> %d, acq_buf_current -> %d \n\n", acq_buf_pending, acq_buf_current);
 
         while (acq_buf_pending != acq_buf_current && acq_buf_pending != 999)
@@ -1178,8 +1177,7 @@ void *frame_selector(void *threadparams)
                 acq_buf_pending++;
 
             sel_count++;
-        }
-        syslog(LOG_CRIT, "FStime_ms,%04f", getTimeMsec() - acq_inittime);
+        }        
     }
     printf("Exiting Frame Selector \n\n");
     pthread_exit((void *)0);
