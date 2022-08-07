@@ -26,15 +26,15 @@
 #define NUM_THREADS 64
 #define NUM_CPUS 8
 #define NUM_SKIPS 25
-#define NUM_STABLE_FRAMES 1801
+#define NUM_STABLE_FRAMES 543
 #define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
 
-// #define ONEHZ
+#define ONEHZ
 
 #ifdef ONEHZ
-#define ACQ_PERIOD 60
-#define DUMP_PERIOD 133
-#define SEL_PERIOD 89
+#define ACQ_PERIOD 20
+#define DUMP_PERIOD 47
+#define SEL_PERIOD 33
 #define SEQ_NANOSECONDS 16634666
 #else
 #define ACQ_PERIOD 6
