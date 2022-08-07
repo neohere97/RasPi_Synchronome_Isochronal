@@ -26,7 +26,7 @@
 #define NUM_THREADS 64
 #define NUM_CPUS 8
 #define NUM_SKIPS 25
-#define NUM_STABLE_FRAMES 181
+#define NUM_STABLE_FRAMES 583
 #define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
 
 #define ONEHZ
@@ -609,7 +609,7 @@ void *take_picture(void *threadp)
 {
     unsigned int count;
     count = 0;
-    while (dump_count != NUM_STABLE_FRAMES)
+    while (count < NUM_PICTURES)
     {
         sem_wait(&semAcqPicture);
         syslog(LOG_CRIT, "TPtime_ms,%lf", getTimeMsec());
