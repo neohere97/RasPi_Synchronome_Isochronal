@@ -1108,7 +1108,7 @@ void *Sequencer(void *threadp)
         cnt_sel++;
         cnt_dump++;
 
-        if (cnt_acq == ACQ_PERIOD && frame_count > 0)
+        if (cnt_acq == ACQ_PERIOD)
         {
             sem_post(&semAcqPicture);
             frame_count--;
@@ -1182,7 +1182,7 @@ void *frame_selector(void *threadparams)
                 {
                     diff = abs(temp_buffer[i] - acqbuffer[acq_buf_pending].frame_data[i]);
 
-                    if (diff > 80)
+                    if (diff > 75)
                         frame_diff_avg += diff;
                 }
                 printf("Frame diff between Frame %d - Frame %d is -> %ld \n\n", frame_temp_num, acqbuffer[acq_buf_pending].frame_num, frame_diff_avg);
