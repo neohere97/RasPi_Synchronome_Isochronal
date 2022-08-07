@@ -1135,7 +1135,7 @@ void *Sequencer(void *threadp)
 void *dump_thread(void *threadparams)
 {
 
-    while (dump_count != NUM_STABLE_FRAMES)
+    while (dump_count <= NUM_STABLE_FRAMES)
     {
         sem_wait(&semDumpPicture);
         syslog(LOG_CRIT, "FWtime_ms,%lf", getTimeMsec());
@@ -1187,8 +1187,8 @@ void *frame_selector(void *threadparams)
                 }
                 printf("Frame diff between Frame %d - Frame %d is -> %ld \n\n", frame_temp_num, acqbuffer[acq_buf_pending].frame_num, frame_diff_avg);
             }
-            if (frame_diff_avg > 1500)
-            {
+            // if (frame_diff_avg > 1500)
+            // {
 
                 memcpy(&outbuffer[out_buf_current].frame_data, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
                 outbuffer[out_buf_current].size = acqbuffer[acq_buf_pending].size;
@@ -1203,7 +1203,7 @@ void *frame_selector(void *threadparams)
                 else
                     out_buf_current = 0;
                 sel_count++;
-            }
+            // }
 
             frame_temp_num = acqbuffer[acq_buf_pending].frame_num;
             memcpy(&temp_buffer, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
