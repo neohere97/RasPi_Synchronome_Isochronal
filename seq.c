@@ -238,27 +238,24 @@ int main(int argc, char *argv[])
         printf("\n");
     }
 
-    pthread_create(&startthread,     
-                   &fifo_sched_attr, 
-                   Sequencer,        
-                   (void *)0         
-    );
+    pthread_create(&startthread,
+                   &fifo_sched_attr,
+                   Sequencer,
+                   (void *)0);
 
     set_scheduler(2, 0);
 
-    pthread_create(&acqthread,       
-                   &fifo_sched_attr, 
-                   take_picture,     
-                   (void *)0         
-    );
+    pthread_create(&acqthread,
+                   &fifo_sched_attr,
+                   take_picture,
+                   (void *)0);
 
     set_scheduler(3, 0);
 
-    pthread_create(&selthread,       
-                   &fifo_sched_attr, 
-                   frame_selector,   
-                   (void *)0         
-    );
+    pthread_create(&selthread,
+                   &fifo_sched_attr,
+                   frame_selector,
+                   (void *)0);
 
     set_scheduler(3, 1);
     pthread_create(&dumpthread,      // pointer to thread descriptor
@@ -330,7 +327,7 @@ char pgm_dumpname[] = "frames/test0000.pgm";
 
 static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec *time)
 {
-    
+
     int written, i, total, dumpfd;
 
     snprintf(&pgm_dumpname[11], 9, "%04d", tag - NUM_SKIPS);
@@ -353,7 +350,7 @@ static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec 
         written = write(dumpfd, p, size);
         total += written;
     } while (total < size);
-    close(dumpfd);    
+    close(dumpfd);
 }
 
 void yuv2rgb_float(float y, float u, float v,
@@ -644,7 +641,7 @@ void *take_picture(void *threadp)
 
             if (read_frame())
                 break;
-        }        
+        }
     }
     printf("Exiting Take Picture \n\n");
     pthread_exit((void *)0);
@@ -1109,7 +1106,7 @@ void *Sequencer(void *threadp)
 
         if (cnt_acq == ACQ_PERIOD && frame_count > 0)
         {
-            sem_post(&semAcqPicture);            
+            sem_post(&semAcqPicture);
             frame_count--;
             cnt_acq = 0;
         }
@@ -1122,7 +1119,7 @@ void *Sequencer(void *threadp)
 
         if (cnt_dump == DUMP_PERIOD)
         {
-            sem_post(&semDumpPicture);   
+            sem_post(&semDumpPicture);
             cnt_dump = 0;
         }
         nanosleep(&sleep_time, &time_error);
@@ -1152,15 +1149,17 @@ void *dump_thread(void *threadparams)
 
             dump_count++;
         }
-        
     }
 
     printf("Exiting Dumper \n\n");
     pthread_exit((void *)0);
 }
 
+unsigned int frame_diff_avg;
+
 void *frame_selector(void *threadparams)
 {
+
     while (sel_count != NUM_STABLE_FRAMES)
     {
         sem_wait(&semFrameSelector);
@@ -1168,7 +1167,17 @@ void *frame_selector(void *threadparams)
         // printf("sel_thread, acq_buf_pending -> %d, acq_buf_current -> %d \n\n", acq_buf_pending, acq_buf_current);
 
         while (acq_buf_pending != acq_buf_current && acq_buf_pending != 999)
-        {            
+        {
+            frame_diff_avg = 0;
+            if (acq_buf_current - acq_buf_pending >= 2)
+            {
+                for (int i = 0; i < acqbuffer[acq_buf_pending].size; i++)
+                {
+                    frame_diff_avg += acqbuffer[acq_buf_pending + 1].frame_data[i] - acqbuffer[acq_buf_pending].frame_data[i];
+                }
+                printf("Frame diff between Frame %d - Frame %d is -> %d \n\n", acqbuffer[acq_buf_pending + 1].frame_num, acqbuffer[acq_buf_pending].frame_num, frame_diff_avg);
+            }
+
             memcpy(&outbuffer[out_buf_current].frame_data, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
 
             outbuffer[out_buf_current].size = acqbuffer[acq_buf_pending].size;
@@ -1189,7 +1198,7 @@ void *frame_selector(void *threadparams)
                 acq_buf_pending++;
 
             sel_count++;
-        }        
+        }
     }
     printf("Exiting Frame Selector \n\n");
     pthread_exit((void *)0);
