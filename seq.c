@@ -26,7 +26,7 @@
 #define NUM_THREADS 64
 #define NUM_CPUS 8
 #define NUM_SKIPS 25
-#define NUM_STABLE_FRAMES 60
+#define NUM_STABLE_FRAMES 181
 #define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
 
 #define ONEHZ
@@ -1185,21 +1185,22 @@ void *frame_selector(void *threadparams)
                 }
                 printf("Frame diff between Frame %d - Frame %d is -> %ld \n\n", frame_temp_num, acqbuffer[acq_buf_pending].frame_num, frame_diff_avg);
             }
-            if (frame_diff_avg > 7000)
+            if (frame_diff_avg > 12000)
             {
 
-            memcpy(&outbuffer[out_buf_current].frame_data, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
-            outbuffer[out_buf_current].size = acqbuffer[acq_buf_pending].size;
-            outbuffer[out_buf_current].frametime = acqbuffer[acq_buf_pending].frametime;
-            outbuffer[out_buf_current].frame_num = acqbuffer[acq_buf_pending].frame_num;
+                memcpy(&outbuffer[out_buf_current].frame_data, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
+                outbuffer[out_buf_current].size = acqbuffer[acq_buf_pending].size;
+                outbuffer[out_buf_current].frametime = acqbuffer[acq_buf_pending].frametime;
+                outbuffer[out_buf_current].frame_num = acqbuffer[acq_buf_pending].frame_num;
 
-            if (out_buf_pending == 999)
-                out_buf_pending = out_buf_current;
+                if (out_buf_pending == 999)
+                    out_buf_pending = out_buf_current;
 
-            if (out_buf_current < 29)
-                out_buf_current++;
-            else
-                out_buf_current = 0;
+                if (out_buf_current < 29)
+                    out_buf_current++;
+                else
+                    out_buf_current = 0;
+                sel_count++;
             }
 
             frame_temp_num = acqbuffer[acq_buf_pending].frame_num;
@@ -1209,8 +1210,6 @@ void *frame_selector(void *threadparams)
                 acq_buf_pending = 0;
             else
                 acq_buf_pending++;
-
-            sel_count++;
         }
     }
     printf("Exiting Frame Selector \n\n");
