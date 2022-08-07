@@ -1126,7 +1126,7 @@ void *dump_thread(void *threadparams)
     while (dump_count != NUM_STABLE_FRAMES)
     {
         sem_wait(&semDumpPicture);
-        syslog(LOG_CRIT, "FWtime_ms,%lf", getTimeMsec() - acq_inittime);
+        syslog(LOG_CRIT, "FWtime_ms,%lf", getTimeMsec());
         // printf("Dump thread, out_buf_pending -> %d, out_buf_current -> %d \n\n", out_buf_pending, out_buf_current);
 
         while (out_buf_pending != out_buf_current && out_buf_pending != 999)
