@@ -334,7 +334,7 @@ static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec 
 
     int written, i, total, dumpfd;
 
-    snprintf(&pgm_dumpname[11], 9, "%04d", tag - NUM_SKIPS);
+    snprintf(&pgm_dumpname[11], 9, "%04d", tag);
     strncat(&pgm_dumpname[15], ".pgm", 5);
     dumpfd = open(pgm_dumpname, O_WRONLY | O_NONBLOCK | O_CREAT, 00666);
 
@@ -1184,7 +1184,7 @@ void *frame_selector(void *threadparams)
                 {
                     diff = abs(temp_buffer[i] - acqbuffer[acq_buf_pending].frame_data[i]);
 
-                    if (diff > 85)
+                    if (diff > 89)
                         frame_diff_avg += diff;
                 }
                 printf("Frame diff between Frame %d - Frame %d is -> %ld \n\n", frame_temp_num, acqbuffer[acq_buf_pending].frame_num, frame_diff_avg);
