@@ -33,8 +33,8 @@
 
 #ifdef ONEHZ
 #define ACQ_PERIOD 20
-#define DUMP_PERIOD 133
-#define SEL_PERIOD 89
+#define DUMP_PERIOD 157
+#define SEL_PERIOD 93
 #define SEQ_NANOSECONDS 16634666
 #else
 #define ACQ_PERIOD 6
