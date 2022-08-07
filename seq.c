@@ -433,7 +433,7 @@ static void process_image(const void *p, int size)
     clock_gettime(CLOCK_REALTIME, &frame_time);
 
     framecnt++;
-    printf("frame %d: ", framecnt);
+    // printf("frame %d: ", framecnt);
 
     // This just dumps the frame to a file now, but you could replace with whatever image
     // processing you wish.
@@ -1173,7 +1173,7 @@ void *frame_selector(void *threadparams)
         while (acq_buf_pending != acq_buf_current && acq_buf_pending != 999)
         {
             frame_diff_avg = 0;
-            if (frame_temp_num)
+            if (frame_temp_num != -1)
             {
                 for (int i = 0; i < acqbuffer[acq_buf_pending].size - 1; i++)
                 {
