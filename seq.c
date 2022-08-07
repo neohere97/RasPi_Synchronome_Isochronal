@@ -26,7 +26,7 @@
 #define NUM_THREADS 64
 #define NUM_CPUS 8
 #define NUM_SKIPS 25
-#define NUM_STABLE_FRAMES 583
+#define NUM_STABLE_FRAMES 181
 #define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
 
 #define ONEHZ
@@ -264,10 +264,11 @@ int main(int argc, char *argv[])
                    (void *)0         // parameters to pass in
     );
 
-    pthread_join(acqthread, NULL);
-    pthread_join(selthread, NULL);
     pthread_join(dumpthread, NULL);
     abortTest = 1;
+    pthread_join(acqthread, NULL);
+    pthread_join(selthread, NULL);    
+    
     pthread_join(startthread, NULL);
 }
 
@@ -609,7 +610,7 @@ void *take_picture(void *threadp)
 {
     unsigned int count;
     count = 0;
-    while (count < NUM_PICTURES)
+    while (!abortTest)
     {
         sem_wait(&semAcqPicture);
         syslog(LOG_CRIT, "TPtime_ms,%lf", getTimeMsec());
@@ -1098,8 +1099,8 @@ void *Sequencer(void *threadp)
     int cnt_acq = 0;
     int frame_count = NUM_PICTURES, cnt_sel = 0, cnt_dump = 0;
 
-    printf("\n\n Waiting for Trigger, Press any Key \n\n");
-    getchar();
+    // printf("\n\n Waiting for Trigger, Press any Key \n\n");
+    // getchar();
 
     while (!abortTest)
     {
@@ -1151,8 +1152,7 @@ void *dump_thread(void *threadparams)
 
             dump_count++;
         }
-    }
-
+    }    
     printf("Exiting Dumper \n\n");
     pthread_exit((void *)0);
 }
@@ -1166,7 +1166,7 @@ void *frame_selector(void *threadparams)
 {
     frame_temp_num = -1;
 
-    while (sel_count != NUM_STABLE_FRAMES)
+    while (!abortTest)
     {
         sem_wait(&semFrameSelector);
         syslog(LOG_CRIT, "FStime_ms,%lf", getTimeMsec());
@@ -1187,8 +1187,8 @@ void *frame_selector(void *threadparams)
                 }
                 printf("Frame diff between Frame %d - Frame %d is -> %ld \n\n", frame_temp_num, acqbuffer[acq_buf_pending].frame_num, frame_diff_avg);
             }
-            // if (frame_diff_avg > 7000)
-            // {
+            if (frame_diff_avg > 1500)
+            {
 
                 memcpy(&outbuffer[out_buf_current].frame_data, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
                 outbuffer[out_buf_current].size = acqbuffer[acq_buf_pending].size;
@@ -1203,7 +1203,7 @@ void *frame_selector(void *threadparams)
                 else
                     out_buf_current = 0;
                 sel_count++;
-            // }
+            }
 
             frame_temp_num = acqbuffer[acq_buf_pending].frame_num;
             memcpy(&temp_buffer, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
