@@ -31,7 +31,7 @@
 #define ACQ_PERIOD 60
 #define DUMP_PERIOD 133
 #define SEL_PERIOD 89
-#define TRANSFORM 1
+#define TRANSFORM 0
 
 #define SEQ_SECONDS 0
 // #define SEQ_NANOSECONDS 8330000
@@ -226,26 +226,26 @@ int main(int argc, char *argv[])
         printf("\n");
     }
 
-    pthread_create(&startthread,     // pointer to thread descriptor
-                   &fifo_sched_attr, // use FIFO RT max priority attributes
-                   Sequencer,        // thread function entry point
-                   (void *)0         // parameters to pass in
+    pthread_create(&startthread,     
+                   &fifo_sched_attr, 
+                   Sequencer,        
+                   (void *)0         
     );
 
     set_scheduler(2, 0);
 
-    pthread_create(&acqthread,       // pointer to thread descriptor
-                   &fifo_sched_attr, // use FIFO RT max priority attributes
-                   take_picture,     // thread function entry point
-                   (void *)0         // parameters to pass in
+    pthread_create(&acqthread,       
+                   &fifo_sched_attr, 
+                   take_picture,     
+                   (void *)0         
     );
 
     set_scheduler(3, 0);
 
-    pthread_create(&selthread,       // pointer to thread descriptor
-                   &fifo_sched_attr, // use FIFO RT max priority attributes
-                   frame_selector,   // thread function entry point
-                   (void *)0         // parameters to pass in
+    pthread_create(&selthread,       
+                   &fifo_sched_attr, 
+                   frame_selector,   
+                   (void *)0         
     );
 
     set_scheduler(3, 1);
@@ -318,7 +318,7 @@ char pgm_dumpname[] = "frames/test0000.pgm";
 
 static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec *time)
 {
-    // double acq_inittime = getTimeMsec();
+    
     int written, i, total, dumpfd;
 
     snprintf(&pgm_dumpname[11], 9, "%04d", tag - NUM_SKIPS);
@@ -341,8 +341,7 @@ static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec 
         written = write(dumpfd, p, size);
         total += written;
     } while (total < size);
-    close(dumpfd);
-    // syslog(LOG_CRIT, "time_ms,%f", getTimeMsec() - acq_inittime);
+    close(dumpfd);    
 }
 
 void yuv2rgb_float(float y, float u, float v,
@@ -601,6 +600,7 @@ void *take_picture(void *threadp)
     while (count < NUM_PICTURES)
     {
         sem_wait(&semAcqPicture);
+        double acq_inittime = getTimeMsec();
         count++;
         for (;;)
         {
@@ -633,6 +633,7 @@ void *take_picture(void *threadp)
             if (read_frame())
                 break;
         }
+        syslog(LOG_CRIT, "TPtime_ms,%04f", getTimeMsec() - acq_inittime);
     }
     printf("Exiting Take Picture \n\n");
     pthread_exit((void *)0);
@@ -1097,10 +1098,7 @@ void *Sequencer(void *threadp)
 
         if (cnt_acq == ACQ_PERIOD && frame_count > 0)
         {
-            sem_post(&semAcqPicture);
-            syslog(LOG_CRIT,"time_ms", getTimeMsec() - acq_time);
-            // printf("This should be 1000ms %f\n", getTimeMsec() - acq_time);
-            acq_time = getTimeMsec();
+            sem_post(&semAcqPicture);            
             frame_count--;
             cnt_acq = 0;
         }
@@ -1108,16 +1106,12 @@ void *Sequencer(void *threadp)
         if (cnt_sel == SEL_PERIOD)
         {
             sem_post(&semFrameSelector);
-            // printf("This should be 500ms %f\n", getTimeMsec() - sel_time);
-            // sel_time = getTimeMsec();
             cnt_sel = 0;
         }
 
         if (cnt_dump == DUMP_PERIOD)
         {
-            sem_post(&semDumpPicture);
-            // printf("This should be 2000ms %f\n", getTimeMsec() - dump_time);
-            // dump_time = getTimeMsec();
+            sem_post(&semDumpPicture);   
             cnt_dump = 0;
         }
         nanosleep(&sleep_time, &time_error);
@@ -1133,6 +1127,7 @@ void *dump_thread(void *threadparams)
     while (dump_count != NUM_STABLE_FRAMES)
     {
         sem_wait(&semDumpPicture);
+        double acq_inittime = getTimeMsec();
         // printf("Dump thread, out_buf_pending -> %d, out_buf_current -> %d \n\n", out_buf_pending, out_buf_current);
 
         while (out_buf_pending != out_buf_current && out_buf_pending != 999)
@@ -1146,6 +1141,7 @@ void *dump_thread(void *threadparams)
 
             dump_count++;
         }
+        syslog(LOG_CRIT, "FWtime_ms,%04f", getTimeMsec() - acq_inittime);
     }
 
     printf("Exiting Dumper \n\n");
@@ -1157,10 +1153,11 @@ void *frame_selector(void *threadparams)
     while (sel_count != NUM_STABLE_FRAMES)
     {
         sem_wait(&semFrameSelector);
+        double acq_inittime = getTimeMsec();
         // printf("sel_thread, acq_buf_pending -> %d, acq_buf_current -> %d \n\n", acq_buf_pending, acq_buf_current);
 
         while (acq_buf_pending != acq_buf_current && acq_buf_pending != 999)
-        {
+        {            
             memcpy(&outbuffer[out_buf_current].frame_data, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
 
             outbuffer[out_buf_current].size = acqbuffer[acq_buf_pending].size;
@@ -1182,6 +1179,7 @@ void *frame_selector(void *threadparams)
 
             sel_count++;
         }
+        syslog(LOG_CRIT, "FStime_ms,%04f", getTimeMsec() - acq_inittime);
     }
     printf("Exiting Frame Selector \n\n");
     pthread_exit((void *)0);
