@@ -25,9 +25,8 @@
 
 #define NUM_THREADS 64
 #define NUM_CPUS 8
-#define NUM_SKIPS 25
-#define NUM_STABLE_FRAMES 1801
-#define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
+
+
 
 // #define ONEHZ
 
@@ -36,13 +35,17 @@
 #define DUMP_PERIOD 67
 #define SEL_PERIOD 49
 #define SEQ_NANOSECONDS 16634666
+#define NUM_SKIPS 25
 #else
 #define ACQ_PERIOD 2
 #define DUMP_PERIOD 8
 #define SEL_PERIOD 5
 #define SEQ_NANOSECONDS 16634000
+#define NUM_SKIPS 100
 #endif
 
+#define NUM_STABLE_FRAMES 1801
+#define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
 #define TRANSFORM 0
 
 #define SEQ_SECONDS 0
@@ -1181,7 +1184,7 @@ void *frame_selector(void *threadparams)
                 {
                     diff = abs(temp_buffer[i] - acqbuffer[acq_buf_pending].frame_data[i]);
 
-                    if (diff > 50)
+                    if (diff > 75)
                         frame_diff_avg += diff;
                 }
                 printf("Frame diff between Frame %d - Frame %d is -> %ld \n\n", frame_temp_num, acqbuffer[acq_buf_pending].frame_num, frame_diff_avg);
