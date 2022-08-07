@@ -1155,7 +1155,7 @@ void *dump_thread(void *threadparams)
     pthread_exit((void *)0);
 }
 
-unsigned int frame_diff_avg;
+int frame_diff_avg;
 
 void *frame_selector(void *threadparams)
 {
@@ -1171,7 +1171,7 @@ void *frame_selector(void *threadparams)
             frame_diff_avg = 0;
             if (acq_buf_current - acq_buf_pending >= 2)
             {
-                for (int i = 0; i < acqbuffer[acq_buf_pending].size; i++)
+                for (int i = 0; i < acqbuffer[acq_buf_pending].size-1; i++)
                 {
                     frame_diff_avg += acqbuffer[acq_buf_pending + 1].frame_data[i] - acqbuffer[acq_buf_pending].frame_data[i];
                 }
