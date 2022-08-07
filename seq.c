@@ -1100,7 +1100,7 @@ void *Sequencer(void *threadp)
     // printf("\n\n Waiting for Trigger, Press any Key \n\n");
     // getchar();
 
-    while (!seqShut)
+    while (!seqTest)
     {
         cnt_acq++;
         cnt_sel++;
