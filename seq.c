@@ -330,7 +330,7 @@ static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec 
 
     int written, i, total, dumpfd;
 
-    snprintf(&pgm_dumpname[11], 9, "%04d", tag - NUM_SKIPS);
+    snprintf(&pgm_dumpname[11], 9, "%04d", tag);
     strncat(&pgm_dumpname[15], ".pgm", 5);
     dumpfd = open(pgm_dumpname, O_WRONLY | O_NONBLOCK | O_CREAT, 00666);
 
@@ -1157,6 +1157,9 @@ void *dump_thread(void *threadparams)
 
 long frame_diff_avg;
 
+unsigned char temp_buffer[(1280 * 960)];
+int frame_temp_num;
+
 void *frame_selector(void *threadparams)
 {
 
@@ -1169,22 +1172,12 @@ void *frame_selector(void *threadparams)
         while (acq_buf_pending != acq_buf_current && acq_buf_pending != 999)
         {
 
-            if (acq_buf_current - acq_buf_pending >= 2)
-            {
-
-                frame_diff_avg = 0;
-                for (int i = 0; i < acqbuffer[acq_buf_pending].size - 1; i++)
-                {
-                    frame_diff_avg += (acqbuffer[acq_buf_pending + 1].frame_data[i] - acqbuffer[acq_buf_pending].frame_data[i]);
-                }
-                printf("Frame diff between Frame %d - Frame %d is -> %ld \n\n", acqbuffer[acq_buf_pending + 1].frame_num, acqbuffer[acq_buf_pending].frame_num, frame_diff_avg);
-            }
-
             memcpy(&outbuffer[out_buf_current].frame_data, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
-
+            memcpy(&temp_buffer, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
             outbuffer[out_buf_current].size = acqbuffer[acq_buf_pending].size;
             outbuffer[out_buf_current].frametime = acqbuffer[acq_buf_pending].frametime;
             outbuffer[out_buf_current].frame_num = acqbuffer[acq_buf_pending].frame_num;
+            frame_temp_num = acqbuffer[acq_buf_pending].frame_num;
 
             if (out_buf_pending == 999)
                 out_buf_pending = out_buf_current;
@@ -1198,6 +1191,14 @@ void *frame_selector(void *threadparams)
                 acq_buf_pending = 0;
             else
                 acq_buf_pending++;
+
+            
+            frame_diff_avg = 0;
+            for (int i = 0; i < acqbuffer[acq_buf_pending].size - 1; i++)
+            {
+                frame_diff_avg += (acqbuffer[acq_buf_pending].frame_data[i] - temp_buffer[i]);
+            }
+            printf("Frame diff between Frame %d - Frame %d is -> %ld \n\n", acqbuffer[acq_buf_pending + 1].frame_num, frame_temp_num, frame_diff_avg);
 
             sel_count++;
         }
