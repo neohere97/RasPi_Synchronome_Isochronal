@@ -29,12 +29,12 @@
 #define NUM_STABLE_FRAMES 181
 #define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
 
-// #define ONEHZ
+#define ONEHZ
 
 #ifdef ONEHZ
-#define ACQ_PERIOD 20
-#define DUMP_PERIOD 157
-#define SEL_PERIOD 93
+#define ACQ_PERIOD 12
+#define DUMP_PERIOD 45
+#define SEL_PERIOD 33
 #define SEQ_NANOSECONDS 16634666
 #else
 #define ACQ_PERIOD 6
@@ -268,7 +268,7 @@ int main(int argc, char *argv[])
     pthread_join(dumpthread, NULL);    
     pthread_join(acqthread, NULL);
     pthread_join(selthread, NULL);    
-    seqTest = 0;
+    seqTest = 1;
     pthread_join(startthread, NULL);
 }
 
@@ -1133,7 +1133,7 @@ void *Sequencer(void *threadp)
 void *dump_thread(void *threadparams)
 {
 
-    while (dump_count <= NUM_STABLE_FRAMES)
+    while (dump_count < NUM_STABLE_FRAMES)
     {
         sem_wait(&semDumpPicture);
         syslog(LOG_CRIT, "FWtime_ms,%lf", getTimeMsec());
@@ -1181,13 +1181,13 @@ void *frame_selector(void *threadparams)
                 {
                     diff = abs(temp_buffer[i] - acqbuffer[acq_buf_pending].frame_data[i]);
 
-                    if (diff > 75)
+                    if (diff > 50)
                         frame_diff_avg += diff;
                 }
                 printf("Frame diff between Frame %d - Frame %d is -> %ld \n\n", frame_temp_num, acqbuffer[acq_buf_pending].frame_num, frame_diff_avg);
             }
-            if (frame_diff_avg > 800)
-            {
+            // if (frame_diff_avg > 800)
+            // {
 
                 memcpy(&outbuffer[out_buf_current].frame_data, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
                 outbuffer[out_buf_current].size = acqbuffer[acq_buf_pending].size;
@@ -1202,7 +1202,7 @@ void *frame_selector(void *threadparams)
                 else
                     out_buf_current = 0;
                 sel_count++;
-            }
+            // }
 
             frame_temp_num = acqbuffer[acq_buf_pending].frame_num;
             memcpy(&temp_buffer, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
