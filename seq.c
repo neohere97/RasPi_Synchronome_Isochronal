@@ -26,10 +26,10 @@
 #define NUM_THREADS 64
 #define NUM_CPUS 8
 #define NUM_SKIPS 25
-#define NUM_STABLE_FRAMES 181
+#define NUM_STABLE_FRAMES 1801
 #define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
 
-#define ONEHZ
+// #define ONEHZ
 
 #ifdef ONEHZ
 #define ACQ_PERIOD 30
@@ -37,9 +37,9 @@
 #define SEL_PERIOD 49
 #define SEQ_NANOSECONDS 16634666
 #else
-#define ACQ_PERIOD 6
-#define DUMP_PERIOD 13
-#define SEL_PERIOD 8
+#define ACQ_PERIOD 2
+#define DUMP_PERIOD 8
+#define SEL_PERIOD 5
 #define SEQ_NANOSECONDS 16634000
 #endif
 
@@ -1186,8 +1186,8 @@ void *frame_selector(void *threadparams)
                 }
                 printf("Frame diff between Frame %d - Frame %d is -> %ld \n\n", frame_temp_num, acqbuffer[acq_buf_pending].frame_num, frame_diff_avg);
             }
-            if (frame_diff_avg > 6000)
-            {
+            // if (frame_diff_avg > 6000)
+            // {
 
                 memcpy(&outbuffer[out_buf_current].frame_data, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
                 outbuffer[out_buf_current].size = acqbuffer[acq_buf_pending].size;
@@ -1202,7 +1202,7 @@ void *frame_selector(void *threadparams)
                 else
                     out_buf_current = 0;
                 sel_count++;
-            }
+            // }
 
             frame_temp_num = acqbuffer[acq_buf_pending].frame_num;
             memcpy(&temp_buffer, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
