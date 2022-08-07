@@ -1179,27 +1179,31 @@ void *frame_selector(void *threadparams)
                 for (int i = 0; i < acqbuffer[acq_buf_pending].size - 1; i++)
                 {
                     diff = abs(temp_buffer[i] - acqbuffer[acq_buf_pending].frame_data[i]);
-                    
-                    if(diff > 50)
-                    frame_diff_avg += diff;
-                
+
+                    if (diff > 50)
+                        frame_diff_avg += diff;
                 }
-                printf("Frame diff between Frame %d - Frame %d is -> %ld \n\n", frame_temp_num, acqbuffer[acq_buf_pending].frame_num, frame_diff_avg);
             }
-            memcpy(&outbuffer[out_buf_current].frame_data, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
-            memcpy(&temp_buffer, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
-            outbuffer[out_buf_current].size = acqbuffer[acq_buf_pending].size;
-            outbuffer[out_buf_current].frametime = acqbuffer[acq_buf_pending].frametime;
-            outbuffer[out_buf_current].frame_num = acqbuffer[acq_buf_pending].frame_num;
+            if (frame_diff_avg > 20000)
+            {
+                printf("Frame diff between Frame %d - Frame %d is -> %ld \n\n", frame_temp_num, acqbuffer[acq_buf_pending].frame_num, frame_diff_avg);
+
+                memcpy(&outbuffer[out_buf_current].frame_data, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
+                outbuffer[out_buf_current].size = acqbuffer[acq_buf_pending].size;
+                outbuffer[out_buf_current].frametime = acqbuffer[acq_buf_pending].frametime;
+                outbuffer[out_buf_current].frame_num = acqbuffer[acq_buf_pending].frame_num;
+
+                if (out_buf_pending == 999)
+                    out_buf_pending = out_buf_current;
+
+                if (out_buf_current < 29)
+                    out_buf_current++;
+                else
+                    out_buf_current = 0;
+            }
+
             frame_temp_num = acqbuffer[acq_buf_pending].frame_num;
-
-            if (out_buf_pending == 999)
-                out_buf_pending = out_buf_current;
-
-            if (out_buf_current < 29)
-                out_buf_current++;
-            else
-                out_buf_current = 0;
+            memcpy(&temp_buffer, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
 
             if (acq_buf_pending == 89)
                 acq_buf_pending = 0;
