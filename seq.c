@@ -26,7 +26,7 @@
 #define NUM_THREADS 64
 #define NUM_CPUS 8
 #define NUM_SKIPS 25
-#define NUM_STABLE_FRAMES 1801
+#define NUM_STABLE_FRAMES 181
 #define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
 #define ACQ_PERIOD 60
 #define DUMP_PERIOD 133
@@ -232,7 +232,7 @@ int main(int argc, char *argv[])
                    (void *)0         
     );
 
-    set_scheduler(2, 0);
+    set_scheduler(3, 0);
 
     pthread_create(&acqthread,       
                    &fifo_sched_attr, 
@@ -240,7 +240,7 @@ int main(int argc, char *argv[])
                    (void *)0         
     );
 
-    set_scheduler(3, 0);
+    set_scheduler(3, 1);
 
     pthread_create(&selthread,       
                    &fifo_sched_attr, 
@@ -248,7 +248,7 @@ int main(int argc, char *argv[])
                    (void *)0         
     );
 
-    set_scheduler(3, 1);
+    set_scheduler(3, 2);
     pthread_create(&dumpthread,      // pointer to thread descriptor
                    &fifo_sched_attr, // use FIFO RT max priority attributes
                    dump_thread,      // thread function entry point
