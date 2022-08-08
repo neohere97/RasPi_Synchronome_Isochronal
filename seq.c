@@ -611,10 +611,12 @@ unsigned int sel_count = 0;
 
 void *take_picture(void *threadp)
 {
+    double acqtime;
     while (!abortTest)
     {
         sem_wait(&semAcqPicture);
-        syslog(LOG_CRIT, "TPtime_ms,%lf", getTimeMsec());
+        acqtime = getTimeMsec();
+        
         
         for (;;)
         {
@@ -647,6 +649,7 @@ void *take_picture(void *threadp)
             if (read_frame())
                 break;
         }
+        syslog(LOG_CRIT, "TPtime_ms,%lf", getTimeMsec()- acqtime);
     }
     printf("Exiting Take Picture \n\n");
     pthread_exit((void *)0);
@@ -1135,11 +1138,12 @@ void *Sequencer(void *threadp)
 
 void *dump_thread(void *threadparams)
 {
-
+    double acqtime;
     while (dump_count < NUM_STABLE_FRAMES)
     {
         sem_wait(&semDumpPicture);
-        syslog(LOG_CRIT, "FWtime_ms,%lf", getTimeMsec());
+        acqtime = getTimeMsec();
+        
         // printf("Dump thread, out_buf_pending -> %d, out_buf_current -> %d \n\n", out_buf_pending, out_buf_current);
 
         while (out_buf_pending != out_buf_current && out_buf_pending != 999)
@@ -1153,6 +1157,7 @@ void *dump_thread(void *threadparams)
 
             dump_count++;
         }
+        syslog(LOG_CRIT, "FWtime_ms,%lf", getTimeMsec() - acqtime);
     } 
     abortTest = 1;   
     printf("Exiting Dumper \n\n");
@@ -1167,11 +1172,13 @@ int frame_temp_num;
 void *frame_selector(void *threadparams)
 {
     frame_temp_num = -1;
-
+    double acqtime;
+    
     while (!abortTest)
     {
         sem_wait(&semFrameSelector);
-        syslog(LOG_CRIT, "FStime_ms,%lf", getTimeMsec());
+        acqtime = getTimeMsec();
+        
         // printf("sel_thread, acq_buf_pending -> %d, acq_buf_current -> %d \n\n", acq_buf_pending, acq_buf_current);
 
         while (acq_buf_pending != acq_buf_current && acq_buf_pending != 999 && !abortTest)
@@ -1189,8 +1196,8 @@ void *frame_selector(void *threadparams)
                 }
                 printf("Frame diff between Frame %d - Frame %d is -> %ld \n\n", frame_temp_num, acqbuffer[acq_buf_pending].frame_num, frame_diff_avg);
             }
-            // if (frame_diff_avg > 6000)
-            // {
+            if (frame_diff_avg > 6000)
+            {
 
                 memcpy(&outbuffer[out_buf_current].frame_data, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
                 outbuffer[out_buf_current].size = acqbuffer[acq_buf_pending].size;
@@ -1205,7 +1212,7 @@ void *frame_selector(void *threadparams)
                 else
                     out_buf_current = 0;
                 sel_count++;
-            // }
+            }
 
             frame_temp_num = acqbuffer[acq_buf_pending].frame_num;
             memcpy(&temp_buffer, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
@@ -1215,6 +1222,7 @@ void *frame_selector(void *threadparams)
             else
                 acq_buf_pending++;
         }
+        syslog(LOG_CRIT, "FStime_ms,%lf", getTimeMsec() - acqtime);
     }
     printf("Exiting Frame Selector \n\n");
     pthread_exit((void *)0);
