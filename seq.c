@@ -49,7 +49,7 @@
 #define SEL_PERIOD 8
 // #define SEQ_NANOSECONDS 16634000
 #define NUM_STABLE_FRAMES 1801
-#define NUM_SKIPS 25
+#define NUM_SKIPS 40
 #endif
 
 #define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
@@ -58,8 +58,7 @@
 #define SEQ_NANOSECONDS 16633666
 
 #define SEQ_SECONDS 0
-// #define SEQ_NANOSECONDS 8330000
-// #define SEQ_NANOSECONDS 16634666
+
 
 struct metaframe
 {
