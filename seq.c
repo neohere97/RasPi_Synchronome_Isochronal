@@ -46,7 +46,7 @@
 #define ACQ_PERIOD 2
 #define DUMP_PERIOD 8
 #define SEL_PERIOD 5
-#define SEQ_NANOSECONDS 16634000
+#define SEQ_NANOSECONDS 16633666
 #define NUM_SKIPS 100
 #endif
 
