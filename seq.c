@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
     getchar();
 
     sem_post(&seqBlocker);
-    printf("capturing..")
+    printf("capturing..");
     pthread_join(acqthread, NULL);
     pthread_join(selthread, NULL);
     pthread_join(dumpthread, NULL);
