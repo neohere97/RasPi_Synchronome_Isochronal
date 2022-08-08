@@ -22,20 +22,16 @@
 #include <sched.h>
 #include <semaphore.h>
 #include <stdio.h>
-
 #include <getopt.h>
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 #include <syslog.h>
-
 #include <linux/videodev2.h>
 
-#define NUM_THREADS 64
-#define NUM_CPUS 8
 
-// #define ONEHZ
-
+//Uncomment Bottom Line for 1Hz and Comment out for 10Hz
+// #define ONEHZ 
 #ifdef ONEHZ
 #define ACQ_PERIOD 60
 #define DUMP_PERIOD 133
@@ -47,19 +43,19 @@
 #define ACQ_PERIOD 6
 #define DUMP_PERIOD 13
 #define SEL_PERIOD 8
-// #define SEQ_NANOSECONDS 16634000
+#define SEQ_NANOSECONDS 16634000
 #define NUM_STABLE_FRAMES 1801
 #define NUM_SKIPS 40
 #endif
 
 #define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
 
+//10Hz with transform needs finer tuned nanoseconds
 #define TRANSFORM 0
-#define SEQ_NANOSECONDS 16633666
-
+// #define SEQ_NANOSECONDS 16633666
 #define SEQ_SECONDS 0
 
-
+//Global variables and Definitions
 struct metaframe
 {
     unsigned char frame_data[(1280 * 960)];
@@ -69,27 +65,23 @@ struct metaframe
     unsigned int size;
 };
 
+//Write back buffer 
 struct metaframe outbuffer[30];
+//Acquisition Buffer
 struct metaframe acqbuffer[90];
 
 unsigned int out_buf_pending;
 unsigned int out_buf_current;
-
 unsigned int acq_buf_pending;
 unsigned int acq_buf_current;
-
 unsigned char abortTest;
-
-struct utsname sysname;
 
 
 sem_t semAcqPicture, semDumpPicture, semFrameSelector, seqBlocker;
 
-pthread_t threads[NUM_THREADS];
 pthread_t mainthread;
 pthread_t startthread;
 pthread_t acqthread, dumpthread, selthread;
-
 
 pthread_attr_t fifo_sched_attr;
 pthread_attr_t orig_sched_attr;
@@ -98,13 +90,11 @@ struct sched_param fifo_param;
 #define SCHED_POLICY SCHED_FIFO
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
-// #define COLOR_CONVERT_RGB
 #define HRES 640
 #define VRES 480
 #define HRES_STR "640"
 #define VRES_STR "480"
 
-// Format is used by a number of functions, so made as a file global
 static struct v4l2_format fmt;
 
 enum io_method
@@ -121,8 +111,6 @@ struct buffer
 };
 
 static char *dev_name;
-// static enum io_method   io = IO_METHOD_USERPTR;
-// static enum io_method   io = IO_METHOD_READ;
 static enum io_method io = IO_METHOD_MMAP;
 static int fd = -1;
 struct buffer *buffers;
@@ -131,6 +119,7 @@ static int out_buf;
 static int force_format = 1;
 static int frame_count = 30;
 
+//Function Declarations
 void *Sequencer(void *threadp);
 static void start_capturing(void);
 static void init_device(void);
@@ -191,23 +180,21 @@ int main(int argc, char *argv[])
 
     int rc;
     int i, j;
-    cpu_set_t cpuset;
 
+    cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
 
+    // Initializing Globals
     abortTest = 0;
     out_buf_pending = 999;
     out_buf_current = 0;
-
     acq_buf_current = 0;
     acq_buf_pending = 999;
 
-    uname(&sysname);
 
-    // get affinity set for main thread
     mainthread = pthread_self();
 
-    // Check the affinity mask assigned to the thread
+
     rc = pthread_getaffinity_np(mainthread, sizeof(cpu_set_t), &cpuset);
     if (rc != 0)
         perror("pthread_getaffinity_np");
@@ -222,6 +209,7 @@ int main(int argc, char *argv[])
         printf("\n");
     }
 
+    //Starting Sequencer on core 1
     set_scheduler(1, 0);
     printf("Spawning Sequencer on Core 1, Max Priority \n\n");
     pthread_create(&startthread,
@@ -229,6 +217,7 @@ int main(int argc, char *argv[])
                    Sequencer,
                    (void *)0);
 
+    //Starting Frame Acquisition on Core 2
     set_scheduler(2, 0);
     printf("Spawning Take Picture on Core 2, Max Priority \n\n");
     pthread_create(&acqthread,
@@ -236,6 +225,7 @@ int main(int argc, char *argv[])
                    take_picture,
                    (void *)0);
 
+    //Starting Frame Selector on Core 3
     set_scheduler(3, 0);
     printf("Spawning Frame Selector on Core 3, Max Priority \n\n");
     pthread_create(&selthread,
@@ -243,6 +233,7 @@ int main(int argc, char *argv[])
                    frame_selector,
                    (void *)0);
 
+    //Starting Frame Writeback on Core 3
     set_scheduler(3, 1);
     printf("Spawning Frame Writeback on Core 3, Lower Priority \n\n");
 
@@ -254,14 +245,18 @@ int main(int argc, char *argv[])
     printf("\n\n Waiting for Trigger, Press any Key \n\n");
     getchar();
 
+    //Releasing lock after trigger
     sem_post(&seqBlocker);
     printf("capturing..");
+
+
     pthread_join(acqthread, NULL);
     pthread_join(selthread, NULL);
     pthread_join(dumpthread, NULL);
     abortTest = 1;
     pthread_join(startthread, NULL);
 
+    //Closing the Device
     stop_capturing();
     uninit_device();
     close_device();
@@ -335,16 +330,12 @@ static void process_image(const void *p, int size)
     int y_temp, y2_temp, u_temp, v_temp;
     unsigned char *pptr = (unsigned char *)p;
 
-    // record when process was called
     clock_gettime(CLOCK_REALTIME, &frame_time);
 
     framecnt++;
     if (!(framecnt % 10))
         printf(".");
 
-    // This just dumps the frame to a file now, but you could replace with whatever image
-    // processing you wish.
-    //
     if (framecnt > NUM_SKIPS)
     {
         if (fmt.fmt.pix.pixelformat == V4L2_PIX_FMT_GREY)
@@ -357,7 +348,7 @@ static void process_image(const void *p, int size)
 
             for (i = 0, newi = 0; i < size; i = i + 4, newi = newi + 2)
             {
-                // Y1=first byte and Y2=third byte
+                
                 if (!TRANSFORM)
                 {
                     acqbuffer[acq_buf_current].frame_data[newi] = pptr[i];
@@ -365,10 +356,13 @@ static void process_image(const void *p, int size)
                 }
                 else
                 {
+                    //If negative transform, subtract from 255 and then copy to buffer
                     acqbuffer[acq_buf_current].frame_data[newi] = 255 - pptr[i];
                     acqbuffer[acq_buf_current].frame_data[newi + 1] = 255 - pptr[i + 2];
                 }
             }
+
+            //Updating buffer control variables
             acqbuffer[acq_buf_current].size = (size / 2);
             acqbuffer[acq_buf_current].frametime = &frame_time;
             acqbuffer[acq_buf_current].frame_num = framecnt;
@@ -390,7 +384,6 @@ static void process_image(const void *p, int size)
     }
 
     fflush(stderr);
-    // fprintf(stderr, ".");
     fflush(stdout);
 }
 // -------------------------------------read_frame-------------------------------------------------
@@ -508,8 +501,7 @@ void *take_picture(void *threadp)
     double acqtime;
     while (count < NUM_PICTURES)
     {
-        sem_wait(&semAcqPicture);
-        acqtime = getTimeMsec();
+        sem_wait(&semAcqPicture);   
         count++;
         for (;;)
         {
@@ -542,7 +534,7 @@ void *take_picture(void *threadp)
             if (read_frame())
                 break;
         }
-        syslog(LOG_CRIT, "TPtime_ms,%lf", getTimeMsec() - acqtime);
+ 
     }
     printf("\nExiting Take Picture \n\n");
     pthread_exit((void *)0);
@@ -1015,6 +1007,7 @@ void *Sequencer(void *threadp)
         cnt_sel++;
         cnt_dump++;
 
+        //Sequencer
         if (cnt_acq == ACQ_PERIOD && frame_count > 0)
         {
             sem_post(&semAcqPicture);
@@ -1022,17 +1015,20 @@ void *Sequencer(void *threadp)
             cnt_acq = 0;
         }
 
+        //Frame Selector
         if (cnt_sel == SEL_PERIOD)
         {
             sem_post(&semFrameSelector);
             cnt_sel = 0;
         }
 
+        //Frame Writeback
         if (cnt_dump == DUMP_PERIOD)
         {
             sem_post(&semDumpPicture);
             cnt_dump = 0;
         }
+
         nanosleep(&sleep_time, &time_error);
     }
     printf("Exiting Sequencer \n\n");
@@ -1047,12 +1043,10 @@ void *dump_thread(void *threadparams)
     double acqtime;
     while (dump_count != NUM_STABLE_FRAMES)
     {
-        sem_wait(&semDumpPicture);
-        acqtime = getTimeMsec();
-        // printf("Dump thread, out_buf_pending -> %d, out_buf_current -> %d \n\n", out_buf_pending, out_buf_current);
-
+        sem_wait(&semDumpPicture);      
         while (out_buf_pending != out_buf_current && out_buf_pending != 999)
         {
+            //Writing from outbuffer to filesystem
             dump_pgm(outbuffer[out_buf_pending].frame_data, outbuffer[out_buf_pending].size, outbuffer[out_buf_pending].frame_num, outbuffer[out_buf_pending].frametime);
 
             if (out_buf_pending == 29)
@@ -1061,8 +1055,7 @@ void *dump_thread(void *threadparams)
                 out_buf_pending++;
 
             dump_count++;
-        }
-        syslog(LOG_CRIT, "FWtime_ms,%lf", getTimeMsec() - acqtime);
+        }        
     }
 
     printf("Exiting Dumper \n\n");
@@ -1075,18 +1068,16 @@ void *frame_selector(void *threadparams)
     double acqtime;
     while (sel_count != NUM_STABLE_FRAMES)
     {
-        sem_wait(&semFrameSelector);
-        acqtime = getTimeMsec();
-        // printf("sel_thread, acq_buf_pending -> %d, acq_buf_current -> %d \n\n", acq_buf_pending, acq_buf_current);
-
+        sem_wait(&semFrameSelector);     
+        //Copying the frame from acq buffer to outbuffer
         while (acq_buf_pending != acq_buf_current && acq_buf_pending != 999)
         {
             memcpy(&outbuffer[out_buf_current].frame_data, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
-
             outbuffer[out_buf_current].size = acqbuffer[acq_buf_pending].size;
             outbuffer[out_buf_current].frametime = acqbuffer[acq_buf_pending].frametime;
             outbuffer[out_buf_current].frame_num = acqbuffer[acq_buf_pending].frame_num;
 
+            //Updating the buffer control variables
             if (out_buf_pending == 999)
                 out_buf_pending = out_buf_current;
 
@@ -1101,8 +1092,7 @@ void *frame_selector(void *threadparams)
                 acq_buf_pending++;
 
             sel_count++;
-        }
-        syslog(LOG_CRIT, "FStime_ms,%lf", getTimeMsec() - acqtime);
+        }        
     }
     printf("Exiting Frame Selector \n\n");
     pthread_exit((void *)0);
