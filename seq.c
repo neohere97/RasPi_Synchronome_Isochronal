@@ -143,6 +143,9 @@ static void usage(FILE *fp, int argc, char **argv);
 void *take_picture(void *threadp);
 void *dump_thread(void *threadparams);
 void *frame_selector(void *threadparams);
+static void uninit_device(void);
+static void stop_capturing(void);
+static void close_device(void);
 
 double getTimeMsec(void)
 {
