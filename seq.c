@@ -89,7 +89,7 @@ pthread_t threads[NUM_THREADS];
 pthread_t mainthread;
 pthread_t startthread;
 pthread_t acqthread, dumpthread, selthread;
-threadParams_t threadParams[NUM_THREADS];
+
 
 pthread_attr_t fifo_sched_attr;
 pthread_attr_t orig_sched_attr;
@@ -381,13 +381,8 @@ static void process_image(const void *p, int size)
             else
                 acq_buf_current = 0;
 
-            // dump_pgm(bigbuffer, (size / 2), framecnt, &frame_time);
         }
-        else if (fmt.fmt.pix.pixelformat == V4L2_PIX_FMT_RGB24)
-        {
-            printf("Dump RGB as-is size %d\n", size);
-            dump_ppm(p, size, framecnt, &frame_time);
-        }
+  
         else
         {
             printf("ERROR - unknown dump format\n");
