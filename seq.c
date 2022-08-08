@@ -278,6 +278,7 @@ int main(int argc, char *argv[])
     printf("\n\n Waiting for Trigger, Press any Key \n\n");
     getchar();
 
+    sem_post(&seqBlocker);
 
     pthread_join(acqthread, NULL);
     pthread_join(selthread, NULL);
