@@ -1,3 +1,11 @@
+/***************************************************************************
+ * RTES Final Project
+ * Author: Starter code by Sam Siewert, Modifications + new code by Chinmay Shalawadi
+ * Institution: University of Colorado Boulder
+ * Mail id: chsh1552@colorado.edu
+ * References: lecture slides, Starter Code & Walkthough videos
+ ***************************************************************************/
+
 #define _GNU_SOURCE
 #include <pthread.h>
 #include <stdio.h>
@@ -26,7 +34,6 @@
 #define NUM_THREADS 64
 #define NUM_CPUS 8
 
-
 // #define ONEHZ
 
 #ifdef ONEHZ
@@ -40,19 +47,14 @@
 #define ACQ_PERIOD 6
 #define DUMP_PERIOD 13
 #define SEL_PERIOD 8
-#define SEQ_NANOSECONDS 16633066
+#define SEQ_NANOSECONDS 16634000
 #define NUM_STABLE_FRAMES 1801
 #define NUM_SKIPS 25
 #endif
 
-
-
 #define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
 
-
 #define TRANSFORM 1
-
-
 
 #define SEQ_SECONDS 0
 // #define SEQ_NANOSECONDS 8330000
@@ -80,14 +82,8 @@ unsigned char abortTest;
 
 struct utsname sysname;
 
-typedef struct
-{
-    int threadIdx;
-} threadParams_t;
 
-// POSIX thread declarations and scheduling attributes
-//
-sem_t semAcqPicture, semDumpPicture, semFrameSelector,seqBlocker;
+sem_t semAcqPicture, semDumpPicture, semFrameSelector, seqBlocker;
 
 pthread_t threads[NUM_THREADS];
 pthread_t mainthread;
@@ -147,6 +143,8 @@ static void uninit_device(void);
 static void stop_capturing(void);
 static void close_device(void);
 
+// -------------------------------------getTimeMsec-------------------------------------------------
+
 double getTimeMsec(void)
 {
     struct timespec event_ts = {0, 0};
@@ -155,30 +153,12 @@ double getTimeMsec(void)
     return ((event_ts.tv_sec) * 1000.0) + ((event_ts.tv_nsec) / 1000000.0);
 }
 
-void print_scheduler(void)
-{
-    int schedType = sched_getscheduler(getpid());
-
-    switch (schedType)
-    {
-    case SCHED_FIFO:
-        printf("Pthread policy is SCHED_FIFO\n");
-        break;
-    case SCHED_OTHER:
-        printf("Pthread policy is SCHED_OTHER\n");
-        break;
-    case SCHED_RR:
-        printf("Pthread policy is SCHED_RR\n");
-        break;
-    default:
-        printf("Pthread policy is UNKNOWN\n");
-    }
-}
+// -------------------------------------set_scheduler-------------------------------------------------
 
 void set_scheduler(int cpu_id, int prio_offset)
 {
     int max_prio, scope, rc, cpuidx;
-    cpu_set_t cpuset;  
+    cpu_set_t cpuset;
     pthread_attr_init(&fifo_sched_attr);
     pthread_attr_setinheritsched(&fifo_sched_attr, PTHREAD_EXPLICIT_SCHED);
     pthread_attr_setschedpolicy(&fifo_sched_attr, SCHED_POLICY);
@@ -193,9 +173,9 @@ void set_scheduler(int cpu_id, int prio_offset)
     if ((rc = sched_setscheduler(getpid(), SCHED_POLICY, &fifo_param)) < 0)
         perror("sched_setscheduler");
 
-    pthread_attr_setschedparam(&fifo_sched_attr, &fifo_param);    
-   
+    pthread_attr_setschedparam(&fifo_sched_attr, &fifo_param);
 }
+// -------------------------------------main-------------------------------------------------
 
 int main(int argc, char *argv[])
 {
@@ -212,8 +192,6 @@ int main(int argc, char *argv[])
     int rc;
     int i, j;
     cpu_set_t cpuset;
-
-    
 
     CPU_ZERO(&cpuset);
 
@@ -246,37 +224,33 @@ int main(int argc, char *argv[])
 
     set_scheduler(1, 0);
     printf("Spawning Sequencer on Core 1, Max Priority \n\n");
-    pthread_create(&startthread,     
-                   &fifo_sched_attr, 
-                   Sequencer,        
-                   (void *)0         
-    );
+    pthread_create(&startthread,
+                   &fifo_sched_attr,
+                   Sequencer,
+                   (void *)0);
 
     set_scheduler(2, 0);
     printf("Spawning Take Picture on Core 2, Max Priority \n\n");
-    pthread_create(&acqthread,       
-                   &fifo_sched_attr, 
-                   take_picture,     
-                   (void *)0         
-    );
+    pthread_create(&acqthread,
+                   &fifo_sched_attr,
+                   take_picture,
+                   (void *)0);
 
     set_scheduler(3, 0);
     printf("Spawning Frame Selector on Core 3, Max Priority \n\n");
-    pthread_create(&selthread,       
-                   &fifo_sched_attr, 
-                   frame_selector,   
-                   (void *)0         
-    );
+    pthread_create(&selthread,
+                   &fifo_sched_attr,
+                   frame_selector,
+                   (void *)0);
 
     set_scheduler(3, 1);
     printf("Spawning Frame Writeback on Core 3, Lower Priority \n\n");
 
-    pthread_create(&dumpthread,      
-                   &fifo_sched_attr, 
-                   dump_thread,      
-                   (void *)0         
-    );
-    
+    pthread_create(&dumpthread,
+                   &fifo_sched_attr,
+                   dump_thread,
+                   (void *)0);
+
     printf("\n\n Waiting for Trigger, Press any Key \n\n");
     getchar();
 
@@ -287,19 +261,20 @@ int main(int argc, char *argv[])
     pthread_join(dumpthread, NULL);
     abortTest = 1;
     pthread_join(startthread, NULL);
-    
+
     stop_capturing();
     uninit_device();
     close_device();
 }
 
-// ------------------------------SIMPLE_CAPTURE_CODE---------------------------------------------
+// -------------------------------------errno_exit-------------------------------------------------
 
 static void errno_exit(const char *s)
 {
     fprintf(stderr, "%s error %d, %s\n", s, errno, strerror(errno));
     exit(EXIT_FAILURE);
 }
+// -------------------------------------xioctl-------------------------------------------------
 
 static int xioctl(int fh, int request, void *arg)
 {
@@ -314,42 +289,14 @@ static int xioctl(int fh, int request, void *arg)
     return r;
 }
 
-char ppm_header[] = "P6\n#9999999999 sec 9999999999 msec \n" HRES_STR " " VRES_STR "\n255\n";
-char ppm_dumpname[] = "frames/test0000.ppm";
-
-static void dump_ppm(const void *p, int size, unsigned int tag, struct timespec *time)
-{
-    int written, i, total, dumpfd;
-
-    snprintf(&ppm_dumpname[11], 9, "%04d", tag);
-    strncat(&ppm_dumpname[15], ".ppm", 5);
-    dumpfd = open(ppm_dumpname, O_WRONLY | O_NONBLOCK | O_CREAT, 00666);
-
-    snprintf(&ppm_header[4], 11, "%010d", (int)time->tv_sec);
-    strncat(&ppm_header[14], " sec ", 5);
-    snprintf(&ppm_header[19], 11, "%010d", (int)((time->tv_nsec) / 1000000));
-    strncat(&ppm_header[29], " msec \n" HRES_STR " " VRES_STR "\n255\n", 19);
-    written = write(dumpfd, ppm_header, sizeof(ppm_header));
-
-    total = 0;
-
-    do
-    {
-        written = write(dumpfd, p, size);
-        total += written;
-    } while (total < size);
-
-    printf("wrote %d bytes\n", total);
-
-    close(dumpfd);
-}
+// -------------------------------------dump_pgm-------------------------------------------------
 
 char pgm_header[] = "P5\n#9999999999 sec 9999999999 msec Linux raspberrypi 5.15.32-v7l+ #1538 SMP Thu Mar 31 19:39:41 BST 2022 armv7l GNU/Linux \n\n" HRES_STR " " VRES_STR "\n255\n";
 char pgm_dumpname[] = "frames/test0000.pgm";
 
 static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec *time)
 {
-    
+
     int written, i, total, dumpfd;
 
     snprintf(&pgm_dumpname[11], 9, "%04d", tag - NUM_SKIPS);
@@ -372,73 +319,10 @@ static void dump_pgm(const void *p, int size, unsigned int tag, struct timespec 
         written = write(dumpfd, p, size);
         total += written;
     } while (total < size);
-    close(dumpfd);    
+    close(dumpfd);
 }
 
-void yuv2rgb_float(float y, float u, float v,
-                   unsigned char *r, unsigned char *g, unsigned char *b)
-{
-    float r_temp, g_temp, b_temp;
-
-    // R = 1.164(Y-16) + 1.1596(V-128)
-    r_temp = 1.164 * (y - 16.0) + 1.1596 * (v - 128.0);
-    *r = r_temp > 255.0 ? 255 : (r_temp < 0.0 ? 0 : (unsigned char)r_temp);
-
-    // G = 1.164(Y-16) - 0.813*(V-128) - 0.391*(U-128)
-    g_temp = 1.164 * (y - 16.0) - 0.813 * (v - 128.0) - 0.391 * (u - 128.0);
-    *g = g_temp > 255.0 ? 255 : (g_temp < 0.0 ? 0 : (unsigned char)g_temp);
-
-    // B = 1.164*(Y-16) + 2.018*(U-128)
-    b_temp = 1.164 * (y - 16.0) + 2.018 * (u - 128.0);
-    *b = b_temp > 255.0 ? 255 : (b_temp < 0.0 ? 0 : (unsigned char)b_temp);
-}
-
-// This is probably the most acceptable conversion from camera YUYV to RGB
-//
-// Wikipedia has a good discussion on the details of various conversions and cites good references:
-// http://en.wikipedia.org/wiki/YUV
-//
-// Also http://www.fourcc.org/yuv.php
-//
-// What's not clear without knowing more about the camera in question is how often U & V are sampled compared
-// to Y.
-//
-// E.g. YUV444, which is equivalent to RGB, where both require 3 bytes for each pixel
-//      YUV422, which we assume here, where there are 2 bytes for each pixel, with two Y samples for one U & V,
-//              or as the name implies, 4Y and 2 UV pairs
-//      YUV420, where for every 4 Ys, there is a single UV pair, 1.5 bytes for each pixel or 36 bytes for 24 pixels
-
-void yuv2rgb(int y, int u, int v, unsigned char *r, unsigned char *g, unsigned char *b)
-{
-    int r1, g1, b1;
-
-    // replaces floating point coefficients
-    int c = y - 16, d = u - 128, e = v - 128;
-
-    // Conversion that avoids floating point
-    r1 = (298 * c + 409 * e + 128) >> 8;
-    g1 = (298 * c - 100 * d - 208 * e + 128) >> 8;
-    b1 = (298 * c + 516 * d + 128) >> 8;
-
-    // Computed values may need clipping.
-    if (r1 > 255)
-        r1 = 255;
-    if (g1 > 255)
-        g1 = 255;
-    if (b1 > 255)
-        b1 = 255;
-
-    if (r1 < 0)
-        r1 = 0;
-    if (g1 < 0)
-        g1 = 0;
-    if (b1 < 0)
-        b1 = 0;
-
-    *r = r1;
-    *g = g1;
-    *b = b1;
-}
+// -------------------------------------process_image-------------------------------------------------
 
 unsigned int framecnt = 0;
 unsigned char bigbuffer[(1280 * 960)];
@@ -455,9 +339,8 @@ static void process_image(const void *p, int size)
     clock_gettime(CLOCK_REALTIME, &frame_time);
 
     framecnt++;
-    if(!(framecnt%10))
-    printf(".");
-    
+    if (!(framecnt % 10))
+        printf(".");
 
     // This just dumps the frame to a file now, but you could replace with whatever image
     // processing you wish.
@@ -515,6 +398,7 @@ static void process_image(const void *p, int size)
     // fprintf(stderr, ".");
     fflush(stdout);
 }
+// -------------------------------------read_frame-------------------------------------------------
 
 static int read_frame(void)
 {
@@ -620,6 +504,7 @@ static int read_frame(void)
 
     return 1;
 }
+// -------------------------------------take_picture-------------------------------------------------
 
 void *take_picture(void *threadp)
 {
@@ -662,11 +547,12 @@ void *take_picture(void *threadp)
             if (read_frame())
                 break;
         }
-        syslog(LOG_CRIT, "TPtime_ms,%lf", getTimeMsec() - acqtime);        
+        syslog(LOG_CRIT, "TPtime_ms,%lf", getTimeMsec() - acqtime);
     }
     printf("\nExiting Take Picture \n\n");
     pthread_exit((void *)0);
 }
+// -------------------------------------stop_capturing-------------------------------------------------
 
 static void stop_capturing(void)
 {
@@ -686,6 +572,7 @@ static void stop_capturing(void)
         break;
     }
 }
+// -------------------------------------start_capturing-------------------------------------------------
 
 static void start_capturing(void)
 {
@@ -739,6 +626,7 @@ static void start_capturing(void)
         break;
     }
 }
+// -------------------------------------uninit_device-------------------------------------------------
 
 static void uninit_device(void)
 {
@@ -764,6 +652,7 @@ static void uninit_device(void)
 
     free(buffers);
 }
+// -------------------------------------init_read-------------------------------------------------
 
 static void init_read(unsigned int buffer_size)
 {
@@ -784,6 +673,7 @@ static void init_read(unsigned int buffer_size)
         exit(EXIT_FAILURE);
     }
 }
+// -------------------------------------init_mmap-------------------------------------------------
 
 static void init_mmap(void)
 {
@@ -849,6 +739,7 @@ static void init_mmap(void)
             errno_exit("mmap");
     }
 }
+// -------------------------------------init_userp-------------------------------------------------
 
 static void init_userp(unsigned int buffer_size)
 {
@@ -895,6 +786,7 @@ static void init_userp(unsigned int buffer_size)
         }
     }
 }
+// -------------------------------------init_device-------------------------------------------------
 
 static void init_device(void)
 {
@@ -1036,6 +928,7 @@ static void init_device(void)
         break;
     }
 }
+// -------------------------------------close_device-------------------------------------------------
 
 static void close_device(void)
 {
@@ -1044,6 +937,7 @@ static void close_device(void)
 
     fd = -1;
 }
+// -------------------------------------open_device-------------------------------------------------
 
 static void open_device(void)
 {
@@ -1071,6 +965,7 @@ static void open_device(void)
         exit(EXIT_FAILURE);
     }
 }
+// -------------------------------------usage-------------------------------------------------
 
 static void usage(FILE *fp, int argc, char **argv)
 {
@@ -1103,6 +998,7 @@ static const struct option
         {"format", no_argument, NULL, 'f'},
         {"count", required_argument, NULL, 'c'},
         {0, 0, 0, 0}};
+// -------------------------------------Sequencer-------------------------------------------------
 
 void *Sequencer(void *threadp)
 {
@@ -1126,7 +1022,7 @@ void *Sequencer(void *threadp)
 
         if (cnt_acq == ACQ_PERIOD && frame_count > 0)
         {
-            sem_post(&semAcqPicture);            
+            sem_post(&semAcqPicture);
             frame_count--;
             cnt_acq = 0;
         }
@@ -1139,7 +1035,7 @@ void *Sequencer(void *threadp)
 
         if (cnt_dump == DUMP_PERIOD)
         {
-            sem_post(&semDumpPicture);   
+            sem_post(&semDumpPicture);
             cnt_dump = 0;
         }
         nanosleep(&sleep_time, &time_error);
@@ -1149,6 +1045,8 @@ void *Sequencer(void *threadp)
 }
 unsigned int dump_count = 0;
 unsigned int sel_count = 0;
+// -------------------------------------dump_thread-------------------------------------------------
+
 void *dump_thread(void *threadparams)
 {
     double acqtime;
@@ -1175,6 +1073,7 @@ void *dump_thread(void *threadparams)
     printf("Exiting Dumper \n\n");
     pthread_exit((void *)0);
 }
+// -------------------------------------frame_selector-------------------------------------------------
 
 void *frame_selector(void *threadparams)
 {
@@ -1186,7 +1085,7 @@ void *frame_selector(void *threadparams)
         // printf("sel_thread, acq_buf_pending -> %d, acq_buf_current -> %d \n\n", acq_buf_pending, acq_buf_current);
 
         while (acq_buf_pending != acq_buf_current && acq_buf_pending != 999)
-        {            
+        {
             memcpy(&outbuffer[out_buf_current].frame_data, &acqbuffer[acq_buf_pending].frame_data, acqbuffer[acq_buf_pending].size);
 
             outbuffer[out_buf_current].size = acqbuffer[acq_buf_pending].size;
@@ -1207,9 +1106,11 @@ void *frame_selector(void *threadparams)
                 acq_buf_pending++;
 
             sel_count++;
-        }      
-        syslog(LOG_CRIT, "FStime_ms,%lf", getTimeMsec() - acqtime);  
+        }
+        syslog(LOG_CRIT, "FStime_ms,%lf", getTimeMsec() - acqtime);
     }
     printf("Exiting Frame Selector \n\n");
     pthread_exit((void *)0);
 }
+
+// -------------------------------------End-------------------------------------------------
