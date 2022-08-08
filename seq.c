@@ -27,7 +27,7 @@
 #define NUM_CPUS 8
 
 
-#define ONEHZ
+// #define ONEHZ
 
 #ifdef ONEHZ
 #define ACQ_PERIOD 60
@@ -87,7 +87,7 @@ typedef struct
 
 // POSIX thread declarations and scheduling attributes
 //
-sem_t semAcqPicture, semDumpPicture, semFrameSelector;
+sem_t semAcqPicture, semDumpPicture, semFrameSelector,seqBlocker;
 
 pthread_t threads[NUM_THREADS];
 pthread_t mainthread;
@@ -175,11 +175,7 @@ void print_scheduler(void)
 void set_scheduler(int cpu_id, int prio_offset)
 {
     int max_prio, scope, rc, cpuidx;
-    cpu_set_t cpuset;
-
-    printf("INITIAL ");
-    print_scheduler();
-
+    cpu_set_t cpuset;  
     pthread_attr_init(&fifo_sched_attr);
     pthread_attr_setinheritsched(&fifo_sched_attr, PTHREAD_EXPLICIT_SCHED);
     pthread_attr_setschedpolicy(&fifo_sched_attr, SCHED_POLICY);
@@ -195,9 +191,8 @@ void set_scheduler(int cpu_id, int prio_offset)
         perror("sched_setscheduler");
 
     pthread_attr_setschedparam(&fifo_sched_attr, &fifo_param);
-
     printf("ADJUSTED ");
-    print_scheduler();
+   
 }
 
 int main(int argc, char *argv[])
@@ -216,7 +211,7 @@ int main(int argc, char *argv[])
     int i, j;
     cpu_set_t cpuset;
 
-    set_scheduler(1, 0);
+    
 
     CPU_ZERO(&cpuset);
 
@@ -247,6 +242,8 @@ int main(int argc, char *argv[])
         printf("\n");
     }
 
+    set_scheduler(1, 0);
+    printf("Spawning Sequencer on Core 1, Max Priority \n\n");
     pthread_create(&startthread,     
                    &fifo_sched_attr, 
                    Sequencer,        
@@ -254,7 +251,7 @@ int main(int argc, char *argv[])
     );
 
     set_scheduler(2, 0);
-
+    printf("Spawning Take Picture on Core 2, Max Priority \n\n");
     pthread_create(&acqthread,       
                    &fifo_sched_attr, 
                    take_picture,     
@@ -262,7 +259,7 @@ int main(int argc, char *argv[])
     );
 
     set_scheduler(3, 0);
-
+    printf("Spawning Frame Selector on Core 3, Max Priority \n\n");
     pthread_create(&selthread,       
                    &fifo_sched_attr, 
                    frame_selector,   
@@ -270,11 +267,17 @@ int main(int argc, char *argv[])
     );
 
     set_scheduler(3, 1);
-    pthread_create(&dumpthread,      // pointer to thread descriptor
-                   &fifo_sched_attr, // use FIFO RT max priority attributes
-                   dump_thread,      // thread function entry point
-                   (void *)0         // parameters to pass in
+    printf("Spawning Frame Writeback on Core 3, Lower Priority \n\n");
+
+    pthread_create(&dumpthread,      
+                   &fifo_sched_attr, 
+                   dump_thread,      
+                   (void *)0         
     );
+    
+    printf("\n\n Waiting for Trigger, Press any Key \n\n");
+    getchar();
+
 
     pthread_join(acqthread, NULL);
     pthread_join(selthread, NULL);
@@ -1107,8 +1110,7 @@ void *Sequencer(void *threadp)
     int cnt_acq = 0;
     int frame_count = NUM_PICTURES, cnt_sel = 0, cnt_dump = 0;
 
-    printf("\n\n Waiting for Trigger, Press any Key \n\n");
-    getchar();
+    sem_wait(&seqBlocker);
 
     while (!abortTest)
     {
