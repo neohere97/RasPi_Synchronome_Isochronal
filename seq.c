@@ -34,7 +34,7 @@
 #define NUM_THREADS 64
 #define NUM_CPUS 8
 
-#define ONEHZ
+// #define ONEHZ
 
 #ifdef ONEHZ
 #define ACQ_PERIOD 60
@@ -54,7 +54,7 @@
 
 #define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
 
-#define TRANSFORM 1
+#define TRANSFORM 0
 // #define SEQ_NANOSECONDS 16633666
 
 #define SEQ_SECONDS 0
