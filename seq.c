@@ -284,6 +284,10 @@ int main(int argc, char *argv[])
     pthread_join(dumpthread, NULL);
     abortTest = 1;
     pthread_join(startthread, NULL);
+    
+    stop_capturing();
+    uninit_device();
+    close_device();
 }
 
 // ------------------------------SIMPLE_CAPTURE_CODE---------------------------------------------
