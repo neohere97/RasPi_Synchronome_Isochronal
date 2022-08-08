@@ -1,6 +1,6 @@
 INCLUDE_DIRS = 
 LIB_DIRS = 
-CC=gcc
+CC=gcc -Wno-stringop-overflow
 
 CDEFS=
 CFLAGS= -O0 -g $(INCLUDE_DIRS) $(CDEFS)
