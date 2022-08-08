@@ -190,8 +190,7 @@ void set_scheduler(int cpu_id, int prio_offset)
     if ((rc = sched_setscheduler(getpid(), SCHED_POLICY, &fifo_param)) < 0)
         perror("sched_setscheduler");
 
-    pthread_attr_setschedparam(&fifo_sched_attr, &fifo_param);
-    printf("ADJUSTED ");
+    pthread_attr_setschedparam(&fifo_sched_attr, &fifo_param);    
    
 }
 
@@ -279,7 +278,7 @@ int main(int argc, char *argv[])
     getchar();
 
     sem_post(&seqBlocker);
-
+    printf("capturing..")
     pthread_join(acqthread, NULL);
     pthread_join(selthread, NULL);
     pthread_join(dumpthread, NULL);
@@ -449,7 +448,9 @@ static void process_image(const void *p, int size)
     clock_gettime(CLOCK_REALTIME, &frame_time);
 
     framecnt++;
-    printf("Stable Capture %d: \n", framecnt);
+    if(!(framecnt%10))
+    printf(".");
+    
 
     // This just dumps the frame to a file now, but you could replace with whatever image
     // processing you wish.
@@ -464,11 +465,6 @@ static void process_image(const void *p, int size)
         else if (fmt.fmt.pix.pixelformat == V4L2_PIX_FMT_YUYV)
         {
 
-            //printf("Dump YUYV converted to YY size %d\n", size);
-
-            // Pixels are YU and YV alternating, so YUYV which is 4 bytes
-            // We want Y, so YY which is 2 bytes
-            //
             for (i = 0, newi = 0; i < size; i = i + 4, newi = newi + 2)
             {
                 // Y1=first byte and Y2=third byte
