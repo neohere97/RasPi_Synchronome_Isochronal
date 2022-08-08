@@ -27,7 +27,7 @@
 #define NUM_CPUS 8
 
 
-// #define ONEHZ
+#define ONEHZ
 
 #ifdef ONEHZ
 #define ACQ_PERIOD 60
@@ -50,7 +50,7 @@
 #define NUM_PICTURES (NUM_SKIPS + NUM_STABLE_FRAMES)
 
 
-#define TRANSFORM 0
+#define TRANSFORM 1
 
 
 
@@ -655,7 +655,7 @@ void *take_picture(void *threadp)
                 break;
         }        
     }
-    printf("Exiting Take Picture \n\n");
+    printf("\nExiting Take Picture \n\n");
     pthread_exit((void *)0);
 }
 
