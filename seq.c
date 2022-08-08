@@ -27,7 +27,7 @@
 #define NUM_CPUS 8
 
 
-#define ONEHZ
+// #define ONEHZ
 
 #ifdef ONEHZ
 #define ACQ_PERIOD 60
